@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/ButterHost69/PKr-Server/db"
+	"github.com/ButterHost69/PKr-Server/server"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -26,9 +27,9 @@ var (
 
 func Init() {
 	flag.BoolVar(&RELEASE, "r", false, "If Release Mode or Debug Mode. Default: False")
-	flag.BoolVar(&TESTMODE, "t", false, "If Test Mode. Default: False")
+	flag.BoolVar(&TESTMODE, "t", false, "If Test Mode. Default: False") // No Test rn ...
 	flag.StringVar(&LOG_FP, "l", "./log/events_", "Specify Log File Path Eg: ./log/logs")
-	flag.StringVar(&IPADDR, "ipaddr", "localhost:9069", "Specify Address to Run Server")
+	flag.StringVar(&IPADDR, "port", ":9090", "Specify Address to Run Server")
 	flag.Parse()
 
 	var database_path string
@@ -96,5 +97,8 @@ func main() {
 	sugar := logger.Sugar()
 
 	sugar.Info("~ PKr Server Started ~")
+	if err := server.InitServer(IPADDR, sugar); err != nil {
+		log.Fatal("error Occured in Starting Gin Server...Error: ", err)
+	}
 	Close()
 }
