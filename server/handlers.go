@@ -1,6 +1,9 @@
 package server
 
 import (
+	"math/rand"
+	"strconv"
+
 	"github.com/ButterHost69/PKr-Server/db"
 	"go.uber.org/zap"
 )
@@ -25,5 +28,35 @@ func (h *Handler) Ping(req PingRequest, res *PingResponse)(error){
 	}
 
 	res.Response = 200
+	return nil
+}
+
+
+func (h *Handler) RegisterUser(req RegisterUserRequest, res *RegisterUserResponse)(error){
+	username := req.Username
+
+	tagId := rand.Intn(9000) + 1000
+	username = username + "#" + strconv.Itoa(tagId)
+
+	if err := db.CreateNewUser(username, req.Password); err != nil {
+		h.sugar.Error(err)
+		res.Response = 500
+		res.UniqueUsername = ""
+
+		return err
+	}
+
+	if err := db.UpdateUserIP(username, req.Password, req.PublicIP, req.PublicPort); err != nil {
+		h.sugar.Error(err)
+		res.Response = 203
+		res.UniqueUsername = ""
+
+		return err
+	}
+
+
+	res.Response = 200
+	res.UniqueUsername = username
+
 	return nil
 }
