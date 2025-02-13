@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	// "github.com/ButterHost69/PKr-Server/db"
+	"github.com/ButterHost69/PKr-Server/db"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -90,6 +90,8 @@ func Close() {
 
 // TODO: [ ] Find a way to load test data in test database
 func main() {
+	// fmt.Println("Server Running...")
+
 	Init()
 	sugar := logger.Sugar()
 
