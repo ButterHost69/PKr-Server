@@ -60,3 +60,19 @@ func (h *Handler) RegisterUser(req RegisterUserRequest, res *RegisterUserRespons
 
 	return nil
 }
+
+func (h *Handler) RegisterWorkspac(req RegisterWorkspaceRequest, res *RegisterWorkspaceResponse) (error) {
+
+	auth, err := db.RegisterNewWorkspace(req.Username, req.Password, req.WorkspaceName)
+	if err != nil {
+		res.Response = 500
+		return err
+	}
+
+	if !auth {
+		res.Response = 203
+	}
+
+	res.Response = 200
+	return nil
+}
