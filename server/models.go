@@ -34,3 +34,17 @@ type RegisterWorkspaceRequest struct {
 type RegisterWorkspaceResponse struct {
 	Response int
 }
+
+type RequestPunchFromRecieverRequest struct {
+	SendersIP   string
+	SendersPort string
+
+	Username string
+	Password string
+
+	RecieversUsername string
+}
+
+type RequestPunchFromRecieverResponse struct {
+	Response int
+}

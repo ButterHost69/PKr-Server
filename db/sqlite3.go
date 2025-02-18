@@ -2,6 +2,7 @@ package db
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -447,6 +448,30 @@ func GetUserIP(username string) (string, error) {
 		return "", fmt.Errorf("no workspaces found for user ID %s", username)
 	}
 	return ip+":"+port, nil
+}
+
+// Ip:Port, error
+func GetIPAddrUsingUsername(myusername, mypassword, usernameIp string) (string,  error) {
+	tx, err := db.Begin()
+	if err != nil {
+		return "",  err
+	}
+
+	ifAuth, err := authUser(tx, myusername, mypassword)
+	if err != nil {
+		return "",  errors.Join(errors.New("error Could not Auth User."), err)
+		// return "",  fmt.Errorf("error Could not Auth User.\nError: %v", err)
+	}
+
+	if !ifAuth {
+		return "",  fmt.Errorf("error Incorrect user credentials.\nError: %v", err)
+	}
+
+	ipaddr, err := GetUserIP(usernameIp) 
+	if err != nil {
+		return "",  err
+	}
+	return ipaddr, nil
 }
 
 func GetAllMyConnectedWorkspaceInfo(username, password string) (UsersConnectionInfo, error) {

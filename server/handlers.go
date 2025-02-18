@@ -1,11 +1,18 @@
 package server
 
 import (
+	"errors"
 	"math/rand"
 	"strconv"
 
 	"github.com/ButterHost69/PKr-Server/db"
+	"github.com/ButterHost69/PKr-Server/dialer"
 	"go.uber.org/zap"
+)
+
+var (
+	ErrCouldNotAuth = errors.New("error Could not Auth User.")
+	ErrRPCCall = errors.New("Error in Calling RPC.")
 )
 
 type Handler struct {
@@ -31,7 +38,7 @@ func (h *Handler) Ping(req PingRequest, res *PingResponse)(error){
 	return nil
 }
 
-
+// TODO: Test
 func (h *Handler) RegisterUser(req RegisterUserRequest, res *RegisterUserResponse)(error){
 	username := req.Username
 
@@ -43,6 +50,7 @@ func (h *Handler) RegisterUser(req RegisterUserRequest, res *RegisterUserRespons
 		res.Response = 500
 		res.UniqueUsername = ""
 
+		h.sugar.Error(err)
 		return err
 	}
 
@@ -51,6 +59,7 @@ func (h *Handler) RegisterUser(req RegisterUserRequest, res *RegisterUserRespons
 		res.Response = 203
 		res.UniqueUsername = ""
 
+		h.sugar.Error(err)
 		return err
 	}
 
@@ -61,11 +70,14 @@ func (h *Handler) RegisterUser(req RegisterUserRequest, res *RegisterUserRespons
 	return nil
 }
 
+// TODO: Test
 func (h *Handler) RegisterWorkspac(req RegisterWorkspaceRequest, res *RegisterWorkspaceResponse) (error) {
 
 	auth, err := db.RegisterNewWorkspace(req.Username, req.Password, req.WorkspaceName)
 	if err != nil {
 		res.Response = 500
+
+		h.sugar.Error(err)
 		return err
 	}
 
@@ -74,5 +86,33 @@ func (h *Handler) RegisterWorkspac(req RegisterWorkspaceRequest, res *RegisterWo
 	}
 
 	res.Response = 200
+	return nil
+}
+
+// TODO: Test
+func (h *Handler) RequestPunchFromReciever(req RequestPunchFromRecieverRequest, res *RequestPunchFromRecieverResponse) (error) {
+	if err := db.UpdateUserIP(req.Username, req.Password, req.SendersIP, req.SendersPort); err != nil {
+		res.Response = 500
+		return err
+	}
+
+	ipaddr, err := db.GetIPAddrUsingUsername(req.Username, req.Password, req.RecieversUsername)
+	if err != nil {
+		if errors.Is(err, ErrCouldNotAuth) {
+			res.Response = 203
+		} else {
+			h.sugar.Error(errors.Join(err, errors.New("errors in RequestPunchFromReciever.")))
+			return err
+		}
+	}
+
+	response, err := dialer.CallNotifyToPunch(req.Username, req.SendersIP, req.SendersPort, ipaddr)
+	if err != nil {
+		res.Response = 500
+		h.sugar.Error(errors.Join(err, errors.New("errors in RequestPunchFromReciever.")))
+		return err
+	}
+
+	res.Response = response
 	return nil
 }
