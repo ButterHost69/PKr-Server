@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	HANDLER_NAME = "Handler"
+	CLIENT_BACKGROUND_SERVER_HANDLER = "KCPHandler"
 )
 
 func call(rpcname string, args interface{}, reply interface{}, ripaddr string) error {
@@ -30,7 +30,7 @@ func call(rpcname string, args interface{}, reply interface{}, ripaddr string) e
 	return nil
 }
 
-func CallNotifyToPunch(sendersUsername, sendersIP, sendersPort, recvIpAddr string) (int, error) {
+func CallNotifyToPunch(sendersUsername, sendersIP, sendersPort, recvIpAddr string) (NotifyToPunchResponse , error) {
 	var req NotifyToPunchRequest
 	var res NotifyToPunchResponse
 
@@ -39,9 +39,9 @@ func CallNotifyToPunch(sendersUsername, sendersIP, sendersPort, recvIpAddr strin
 	req.SendersPort = sendersPort
 
 	
-	if err := call(HANDLER_NAME + ".NotifyToPunch", req, &res, recvIpAddr); err != nil{
-		return 500, errors.Join(errors.New("Error in Calling RPC."), err)
+	if err := call(CLIENT_BACKGROUND_SERVER_HANDLER + ".NotifyToPunch", req, &res, recvIpAddr); err != nil{
+		return res, errors.Join(errors.New("Error in Calling RPC."), err)
 	}
 
-	return res.Response, nil
+	return res, nil
 }

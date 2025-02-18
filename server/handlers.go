@@ -113,6 +113,9 @@ func (h *Handler) RequestPunchFromReciever(req RequestPunchFromRecieverRequest, 
 		return err
 	}
 
-	res.Response = response
+	res.Response = response.Response
+	res.RecieversPublicIP = response.RecieversPublicIP
+	res.RecieversPublicPort = response.RecieversPublicPort
+	
 	return nil
 }

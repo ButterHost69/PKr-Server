@@ -46,5 +46,7 @@ type RequestPunchFromRecieverRequest struct {
 }
 
 type RequestPunchFromRecieverResponse struct {
-	Response int
+	Response            int
+	RecieversPublicIP   string
+	RecieversPublicPort int
 }
