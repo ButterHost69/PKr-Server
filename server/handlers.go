@@ -12,20 +12,21 @@ import (
 
 var (
 	ErrCouldNotAuth = errors.New("error Could not Auth User.")
-	ErrRPCCall      = errors.New("Error in Calling RPC.")
+	ErrRPCCall = errors.New("Error in Calling RPC.")
 )
 
 type Handler struct {
-	sugar *zap.SugaredLogger
+	sugar 	*zap.SugaredLogger
 }
 
-func (h *Handler) Ping(req PingRequest, res *PingResponse) error {
+func (h *Handler) Ping(req PingRequest, res *PingResponse)(error){
 
+	h.sugar.Info("Ping Method Called ...")
 	if req.Username == "" {
 		res.Response = 203
 	}
 
-	if req.PublicIP == "" || req.PublicPort == "" {
+	if req.PublicIP == "" || req.PublicPort == ""{
 		res.Response = 205
 	}
 
@@ -39,9 +40,10 @@ func (h *Handler) Ping(req PingRequest, res *PingResponse) error {
 }
 
 // TODO: Test
-func (h *Handler) RegisterUser(req RegisterUserRequest, res *RegisterUserResponse) error {
+func (h *Handler) RegisterUser(req RegisterUserRequest, res *RegisterUserResponse)(error){
 	username := req.Username
 
+	h.sugar.Info("Register User Method Called ...")
 	tagId := rand.Intn(9000) + 1000
 	username = username + "#" + strconv.Itoa(tagId)
 
@@ -63,6 +65,7 @@ func (h *Handler) RegisterUser(req RegisterUserRequest, res *RegisterUserRespons
 		return err
 	}
 
+
 	res.Response = 200
 	res.UniqueUsername = username
 
@@ -70,8 +73,9 @@ func (h *Handler) RegisterUser(req RegisterUserRequest, res *RegisterUserRespons
 }
 
 // TODO: Test
-func (h *Handler) RegisterWorkspace(req RegisterWorkspaceRequest, res *RegisterWorkspaceResponse) error {
+func (h *Handler) RegisterWorkspac(req RegisterWorkspaceRequest, res *RegisterWorkspaceResponse) (error) {
 
+	h.sugar.Info("Register User Method Called ...")
 	auth, err := db.RegisterNewWorkspace(req.Username, req.Password, req.WorkspaceName)
 	if err != nil {
 		res.Response = 500
@@ -89,7 +93,9 @@ func (h *Handler) RegisterWorkspace(req RegisterWorkspaceRequest, res *RegisterW
 }
 
 // TODO: Test
-func (h *Handler) RequestPunchFromReciever(req RequestPunchFromRecieverRequest, res *RequestPunchFromRecieverResponse) error {
+func (h *Handler) RequestPunchFromReciever(req RequestPunchFromRecieverRequest, res *RequestPunchFromRecieverResponse) (error) {
+	
+	h.sugar.Info("RequestPunchFromReciever User Method Called ...")
 	if err := db.UpdateUserIP(req.Username, req.Password, req.SendersIP, req.SendersPort); err != nil {
 		res.Response = 500
 		return err
@@ -115,6 +121,6 @@ func (h *Handler) RequestPunchFromReciever(req RequestPunchFromRecieverRequest, 
 	res.Response = response.Response
 	res.RecieversPublicIP = response.RecieversPublicIP
 	res.RecieversPublicPort = response.RecieversPublicPort
-
+	
 	return nil
 }
