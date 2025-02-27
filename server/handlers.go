@@ -3,6 +3,7 @@ package server
 import (
 	"errors"
 	"math/rand"
+	"net"
 	"strconv"
 
 	"github.com/ButterHost69/PKr-Server/db"
@@ -16,6 +17,7 @@ var (
 )
 
 type Handler struct {
+	conn  *net.UDPConn
 	sugar *zap.SugaredLogger
 }
 
@@ -95,7 +97,7 @@ func (h *Handler) RegisterWorkspace(req RegisterWorkspaceRequest, res *RegisterW
 	}
 
 	res.Response = 200
-	h.sugar.Info("Workspace Registered: Username - ", req.Username," Workspace - ", req.WorkspaceName)
+	h.sugar.Info("Workspace Registered: Username - ", req.Username, " Workspace - ", req.WorkspaceName)
 	return nil
 }
 
@@ -120,7 +122,12 @@ func (h *Handler) RequestPunchFromReciever(req RequestPunchFromRecieverRequest, 
 	}
 
 	h.sugar.Info("RequestPunchFromReciever: IP retrieved for user - ", req.RecieversUsername, " - ", ipaddr)
-	response, err := dialer.CallNotifyToPunch(req.Username, req.SendersIP, req.SendersPort, ipaddr)
+
+	clientHandler := dialer.ClientDialer{
+		Conn: h.conn,
+	}
+
+	response, err := clientHandler.CallNotifyToPunch(req.Username, req.SendersIP, req.SendersPort, ipaddr)
 	if err != nil {
 		res.Response = 500
 		h.sugar.Error(errors.Join(err, errors.New("errors in RequestPunchFromReciever.")))

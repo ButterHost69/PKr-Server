@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net"
 	"net/rpc"
 	"time"
 
@@ -33,9 +34,9 @@ func call(rpcname string, args interface{}, reply interface{}, ripaddr string) e
 	return nil
 }
 
-func callWithContext(ctx context.Context, rpcname string, args interface{}, reply interface{}, ripaddr string) error {
+func callWithContextAndConn(ctx context.Context, rpcname string, args interface{}, reply interface{}, ripaddr string, udpconn *net.UDPConn) error {
 	// Dial the remote address
-	conn, err := kcp.Dial(ripaddr, ":9090")
+	conn, err := kcp.DialWithConnAndOptions(ripaddr, nil, 0, 0, udpconn)
 	if err != nil {
 		return err
 	}
@@ -58,7 +59,7 @@ func callWithContext(ctx context.Context, rpcname string, args interface{}, repl
 	}
 }
 
-func CallNotifyToPunch(sendersUsername, sendersIP, sendersPort, recvIpAddr string) (NotifyToPunchResponse, error) {
+func (h *ClientDialer) CallNotifyToPunch(sendersUsername, sendersIP, sendersPort, recvIpAddr string) (NotifyToPunchResponse, error) {
 	var req NotifyToPunchRequest
 	var res NotifyToPunchResponse
 
@@ -70,7 +71,7 @@ func CallNotifyToPunch(sendersUsername, sendersIP, sendersPort, recvIpAddr strin
 	defer cancel()
 
 
-	if err := callWithContext(ctx, CLIENT_BACKGROUND_SERVER_HANDLER+".NotifyToPunch", req, &res, recvIpAddr); err != nil {
+	if err := callWithContextAndConn(ctx, CLIENT_BACKGROUND_SERVER_HANDLER+".NotifyToPunch", req, &res, recvIpAddr, h.Conn); err != nil {
 		return res, errors.Join(errors.New("Error in Calling RPC."), err)
 	}
 
