@@ -30,7 +30,7 @@ func call(rpcname string, args interface{}, reply interface{}, ripaddr string) e
 	return nil
 }
 
-func CallNotifyToPunch(sendersUsername, sendersIP, sendersPort, recvIpAddr string) (NotifyToPunchResponse , error) {
+func CallNotifyToPunch(sendersUsername, sendersIP, sendersPort, recvIpAddr string) (NotifyToPunchResponse, error) {
 	var req NotifyToPunchRequest
 	var res NotifyToPunchResponse
 
@@ -38,8 +38,7 @@ func CallNotifyToPunch(sendersUsername, sendersIP, sendersPort, recvIpAddr strin
 	req.SendersIP = sendersIP
 	req.SendersPort = sendersPort
 
-	
-	if err := call(CLIENT_BACKGROUND_SERVER_HANDLER + ".NotifyToPunch", req, &res, recvIpAddr); err != nil{
+	if err := call(CLIENT_BACKGROUND_SERVER_HANDLER+".NotifyToPunch", req, &res, recvIpAddr); err != nil {
 		return res, errors.Join(errors.New("Error in Calling RPC."), err)
 	}
 

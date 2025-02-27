@@ -12,6 +12,8 @@ var (
 	db *sql.DB
 )
 
+// FIXME: UpdateUserIP Err: could Not RollBack transaction during a commit error.\nError: sql: transaction has already been committed or rolled back"}
+
 func createAllTables() error {
 	tx, err := db.Begin()
 	if err != nil {
@@ -79,7 +81,7 @@ func createAllTables() error {
 
 }
 
-func InsertDummyData() error{
+func InsertDummyData() error {
 	tx, err := db.Begin()
 	if err != nil {
 		return err
@@ -119,7 +121,6 @@ func InsertDummyData() error{
 		return fmt.Errorf("error Could not Execute Insert Statement for currentuserip dummy data.\nError: %v", err)
 	}
 
-
 	query = `INSERT INTO workspaceconnection (workspace_name, owner_username, connection_username) VALUES
 				('WorkspaceA', 'user#123', 'user#456'),
 				('WorkspaceA', 'user#123', 'user#789'),
@@ -132,8 +133,6 @@ func InsertDummyData() error{
 		return fmt.Errorf("error Could not Execute Insert Statement for workspaceconnection dummy data.\nError: %v", err)
 	}
 
-
-
 	if err = tx.Commit(); err != nil {
 		if rollback_err := tx.Rollback(); rollback_err != nil {
 			return fmt.Errorf("could Not RollBack transaction during a commit error.\nError: %v", rollback_err)
@@ -145,8 +144,9 @@ func InsertDummyData() error{
 }
 
 // If inMemory :
-// 				 True -> Returns the db pointer
-// 				 False -> Doesn't return shit
+//
+//	True -> Returns the db pointer
+//	False -> Doesn't return shit
 func InitSQLiteDatabase(TESTMODE bool, database_path string) (*sql.DB, error) {
 	var err error
 	// db, err = sql.Open("sqlite3", "./server_database.db")
@@ -188,7 +188,6 @@ func CheckIfWorkspaceExists(username, workspace_name string) (bool, error) {
 	}
 	defer rows.Close()
 
-
 	if rows.Next() {
 		return true, nil
 	}
@@ -203,7 +202,7 @@ func RegisterNewWorkspace(username, password, workspace_name string) (bool, erro
 		return false, err
 	}
 
-	ifAuth, err := authUser(tx, username, password)
+	ifAuth, err := AuthUser(tx, username, password)
 	if err != nil {
 		return false, fmt.Errorf("error Could not Auth User.\nError: %v", err)
 	}
@@ -228,8 +227,8 @@ func RegisterNewWorkspace(username, password, workspace_name string) (bool, erro
 	return true, nil
 }
 
-func authUser(tx *sql.Tx, username, password string) (bool, error) {
-	query := "SELECT COUNT(*) FROM users WHERE username=? AND password=?"
+func AuthUser(tx *sql.Tx, username, password string) (bool, error) {
+	query := "SELECT 1 FROM users WHERE username=? AND password=?"
 	rows, err := tx.Query(query, username, password)
 	if err != nil {
 		tx.Rollback()
@@ -251,7 +250,7 @@ func UpdateUserIP(username, password, ip_addr, port string) error {
 		return err
 	}
 
-	ifAuth, err := authUser(tx, username, password)
+	ifAuth, err := AuthUser(tx, username, password)
 	if err != nil {
 		return fmt.Errorf("error Could not Auth User.\nError: %v", err)
 	}
@@ -320,9 +319,12 @@ func GetWorkspaceList(username string) ([]string, error) {
 }
 
 // Returns : 0 -> All Good
+//
 //	1 -> Authentication Error
 //	2 -> Workspace Doesn't Exists
+//
 // 3 -> connection user doesnt exists
+//
 //	5 -> server error
 func RegisterUserToWorkspace(username, password, workspace_name, connection_username string) (int, error) {
 	tx, err := db.Begin()
@@ -330,7 +332,7 @@ func RegisterUserToWorkspace(username, password, workspace_name, connection_user
 		return 5, err
 	}
 
-	ifAuth, err := authUser(tx, username, password)
+	ifAuth, err := AuthUser(tx, username, password)
 	if err != nil {
 		return 5, fmt.Errorf("error Could not Auth User.\nError: %v", err)
 	}
@@ -352,7 +354,7 @@ func RegisterUserToWorkspace(username, password, workspace_name, connection_user
 
 	// TODO: [X] Check if connection_username exists in users table
 	return 2, fmt.Errorf("error, workspace doesn't exist")
-	workspace_exists:
+workspace_exists:
 	{
 		ifExist, err := VerifyUserExistsInUsersTable(connection_username)
 		if err != nil {
@@ -394,7 +396,6 @@ func VerifyUserExistsInUsersTable(username string) (bool, error) {
 	}
 	defer rows.Close()
 
-
 	if rows.Next() {
 		return true, nil
 	}
@@ -413,7 +414,6 @@ func VerifyConnectionUserExistsInWorkspaceConnectionTable(workspace_name, owner_
 		return false, fmt.Errorf("failed to query users: %v", err)
 	}
 	defer rows.Close()
-
 
 	if rows.Next() {
 		return true, nil
@@ -435,41 +435,37 @@ func GetUserIP(username string) (string, error) {
 	ip := ""
 	port := ""
 	for rows.Next() {
-		if err := rows.Scan(&ip); err != nil {
-			return "", fmt.Errorf("failed to scan workspace name: %v", err)
-		}
-
-		if err := rows.Scan(&port); err != nil {
-			return "", fmt.Errorf("failed to scan owner username: %v", err)
+		if err := rows.Scan(&ip, &port); err != nil {
+			return "", fmt.Errorf("failed to scan user's ip: %v", err)
 		}
 	}
 
 	if ip == "" || port == "" {
 		return "", fmt.Errorf("no workspaces found for user ID %s", username)
 	}
-	return ip+":"+port, nil
+	return ip + ":" + port, nil
 }
 
 // Ip:Port, error
-func GetIPAddrUsingUsername(myusername, mypassword, usernameIp string) (string,  error) {
+func GetIPAddrUsingUsername(myusername, mypassword, usernameIp string) (string, error) {
 	tx, err := db.Begin()
 	if err != nil {
-		return "",  err
+		return "", err
 	}
 
-	ifAuth, err := authUser(tx, myusername, mypassword)
+	ifAuth, err := AuthUser(tx, myusername, mypassword)
 	if err != nil {
-		return "",  errors.Join(errors.New("error Could not Auth User."), err)
+		return "", errors.Join(errors.New("error Could not Auth User."), err)
 		// return "",  fmt.Errorf("error Could not Auth User.\nError: %v", err)
 	}
 
 	if !ifAuth {
-		return "",  fmt.Errorf("error Incorrect user credentials.\nError: %v", err)
+		return "", fmt.Errorf("error Incorrect user credentials.\nError: %v", err)
 	}
 
-	ipaddr, err := GetUserIP(usernameIp) 
+	ipaddr, err := GetUserIP(usernameIp)
 	if err != nil {
-		return "",  err
+		return "", err
 	}
 	return ipaddr, nil
 }
@@ -512,7 +508,7 @@ func GetAllMyConnectedWorkspaceInfo(username, password string) (UsersConnectionI
 		return usersConnectionInfo, err
 	}
 
-	ifAuth, err := authUser(tx, username, password)
+	ifAuth, err := AuthUser(tx, username, password)
 	if err != nil {
 		return usersConnectionInfo, fmt.Errorf("error Could not Auth User.\nError: %v", err)
 	}
@@ -535,12 +531,11 @@ func GetAllMyConnectedWorkspaceInfo(username, password string) (UsersConnectionI
 	}
 	defer rows.Close()
 
-
 	for rows.Next() {
 		// 	workspace_name	TEXT,
 		// 	owner_username TEXT,
-		var workspaceName 	string
-		var ownerUsername	string
+		var workspaceName string
+		var ownerUsername string
 		if err := rows.Scan(&workspaceName); err != nil {
 			return usersConnectionInfo, fmt.Errorf("failed to scan workspace name: %v", err)
 		}
@@ -556,7 +551,7 @@ func GetAllMyConnectedWorkspaceInfo(username, password string) (UsersConnectionI
 
 		usersConnectionInfo.Connected_Workspace_List = append(usersConnectionInfo.Connected_Workspace_List, ConnectedWorkspaceInfo{
 			Workspace_Name: workspaceName,
-			Workspace_Ip: ip,
+			Workspace_Ip:   ip,
 		})
 	}
 
