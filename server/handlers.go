@@ -125,6 +125,7 @@ func (h *Handler) RequestPunchFromReciever(req RequestPunchFromRecieverRequest, 
 	h.sugar.Info("RequestPunchFromReciever: IP retrieved for user - ", req.RecieversUsername, " - ", ipaddr)
 
 	clientHandler := dialer.ClientDialer{
+		Sugar: h.sugar,
 		Conn: h.Conn,
 	}
 

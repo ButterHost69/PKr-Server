@@ -1,9 +1,14 @@
 package dialer
 
-import "net"
+import (
+	"net"
+
+	"go.uber.org/zap"
+)
 
 type ClientDialer struct {
 	Conn *net.UDPConn
+	Sugar *zap.SugaredLogger
 }
 
 type NotifyToPunchRequest struct {

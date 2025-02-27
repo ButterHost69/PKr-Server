@@ -78,7 +78,8 @@ func (h *ClientDialer) CallNotifyToPunch(sendersUsername, sendersIP, sendersPort
 	ctx, cancel := context.WithTimeout(context.Background(), 25*time.Second)
 	defer cancel()
 
-
+	rpcname := CLIENT_BACKGROUND_SERVER_HANDLER+".NotifyToPunch"
+	h.Sugar.Infof("Dialing RPC %s - Req: %v", rpcname, req)	
 	if err := callWithContextAndConn(ctx, CLIENT_BACKGROUND_SERVER_HANDLER+".NotifyToPunch", req, &res, recvIpAddr, h.Conn); err != nil {
 		return res, errors.Join(errors.New("Error in Calling RPC."), err)
 	}
