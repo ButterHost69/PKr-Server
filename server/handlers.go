@@ -17,7 +17,7 @@ var (
 )
 
 type Handler struct {
-	conn  *net.UDPConn
+	Conn  *net.UDPConn
 	sugar *zap.SugaredLogger
 }
 
@@ -124,7 +124,7 @@ func (h *Handler) RequestPunchFromReciever(req RequestPunchFromRecieverRequest, 
 	h.sugar.Info("RequestPunchFromReciever: IP retrieved for user - ", req.RecieversUsername, " - ", ipaddr)
 
 	clientHandler := dialer.ClientDialer{
-		Conn: h.conn,
+		Conn: h.Conn,
 	}
 
 	response, err := clientHandler.CallNotifyToPunch(req.Username, req.SendersIP, req.SendersPort, ipaddr)

@@ -23,7 +23,7 @@ func InitServer(port string, sugar *zap.SugaredLogger) error{
 	}
 
 	handler := Handler{
-		conn: conn,
+		Conn: conn,
 		sugar: sugar,
 	}
 
