@@ -55,8 +55,4 @@ func InitServer(port string, sugar *zap.SugaredLogger) error{
 		go rpc.ServeConn(session)
 	}
 
-
-	// rpc.Accept(lis)
-
-	return nil
 }
