@@ -45,7 +45,7 @@ func callWithContextAndConn(ctx context.Context, rpcname string, args interface{
 	// defer conn.Close()
 
 	c := rpc.NewClient(conn)
-	defer c.Close()
+	// defer c.Close()
 
 	// Create a channel to handle the RPC call with context
 	done := make(chan error, 1)
