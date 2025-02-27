@@ -38,6 +38,7 @@ func (h *Handler) Ping(req PingRequest, res *PingResponse) error {
 	}
 
 	res.Response = 200
+	h.sugar.Errorf("Updates IP For User %s, %s:%s", req.Username, req.PublicIP, req.PublicPort)
 	return nil
 }
 
