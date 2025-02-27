@@ -9,6 +9,12 @@ require (
 )
 
 require (
+	github.com/templexxx/cpu v0.1.1 // indirect
+	github.com/templexxx/xorsimd v0.4.3 // indirect
+)
+
+require (
+	github.com/ButterHost69/kcp-go v1.0.4
 	github.com/klauspost/cpuid/v2 v2.2.8 // indirect
 	github.com/klauspost/reedsolomon v1.12.4 // indirect
 	github.com/pkg/errors v0.9.1 // indirect

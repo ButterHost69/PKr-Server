@@ -58,8 +58,8 @@ func (h *Handler) RegisterUser(req RegisterUserRequest, res *RegisterUserRespons
 
 	if req.PublicIP == "" || req.PublicPort == "" {
 		h.sugar.Info("Public Ip and Port is Empty for user: ", req.Username)
-		res.Response = 204
-		return nil
+		// res.Response = 204
+		// return nil
 	}
 
 	if err := db.UpdateUserIP(username, req.Password, req.PublicIP, req.PublicPort); err != nil {
@@ -74,13 +74,14 @@ func (h *Handler) RegisterUser(req RegisterUserRequest, res *RegisterUserRespons
 	res.Response = 200
 	res.UniqueUsername = username
 
+	h.sugar.Info("User Created: ", req.Username)
 	return nil
 }
 
 // TODO: Test
 func (h *Handler) RegisterWorkspace(req RegisterWorkspaceRequest, res *RegisterWorkspaceResponse) error {
 
-	h.sugar.Info("Register User Method Called ...")
+	h.sugar.Info("Register Workspace Method Called ...")
 	auth, err := db.RegisterNewWorkspace(req.Username, req.Password, req.WorkspaceName)
 	if err != nil {
 		res.Response = 500
@@ -94,6 +95,7 @@ func (h *Handler) RegisterWorkspace(req RegisterWorkspaceRequest, res *RegisterW
 	}
 
 	res.Response = 200
+	h.sugar.Info("Workspace Registered: Username - ", req.Username," Workspace - ", req.WorkspaceName)
 	return nil
 }
 
@@ -117,6 +119,7 @@ func (h *Handler) RequestPunchFromReciever(req RequestPunchFromRecieverRequest, 
 		}
 	}
 
+	h.sugar.Info("RequestPunchFromReciever: IP retrieved for user - ", req.RecieversUsername, " - ", ipaddr)
 	response, err := dialer.CallNotifyToPunch(req.Username, req.SendersIP, req.SendersPort, ipaddr)
 	if err != nil {
 		res.Response = 500
