@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	CLIENT_BACKGROUND_SERVER_HANDLER = "KCPHandler"
+	CLIENT_BACKGROUND_SERVER_HANDLER = "ServerHandler"
 )
 
 func call(rpcname string, args interface{}, reply interface{}, ripaddr string) error {
