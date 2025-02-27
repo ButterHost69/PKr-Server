@@ -52,12 +52,13 @@ func InitServer(port string, sugar *zap.SugaredLogger) error{
 			}
 			remoteAddr := session.RemoteAddr().String()
 			sugar.Infof("New incoming connection from %s", remoteAddr)
+			rpc.ServeConn(session)
 		}
 	}()
 
 
 	sugar.Info("Started KCP Server...")
-	rpc.Accept(lis)
+	// rpc.Accept(lis)
 
 	return nil
 }
