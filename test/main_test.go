@@ -24,6 +24,7 @@ const (
 var test_db *sql.DB
 
 func TestMain(m *testing.M) {
+	fmt.Println("Args: ", os.Args)
 	if len(os.Args) > 4 {
 		UNIT_FUNC_TESTING = true
 	} else {
@@ -34,7 +35,7 @@ func TestMain(m *testing.M) {
 	err := os.Remove(TEST_DATABASE_PATH)
 	if err != nil {
 		fmt.Println("Error: Cannot Delete Old Test Database File")
-		return
+		// return
 	}
 
 	test_db, err = db.InitSQLiteDatabase(true, TEST_DATABASE_PATH)

@@ -141,15 +141,15 @@ func TestAuthUser(t *testing.T) {
 		TestCreateNewUser(t)
 	}
 
-	dummy_transaction, err := test_db.Begin()
-	if err != nil {
-		t.Log("Error while Beginining Transaction")
-		t.Error(err)
-		return
-	}
+	// dummy_transaction, err := test_db.Begin()
+	// if err != nil {
+	// 	t.Log("Error while Beginining Transaction")
+	// 	t.Error(err)
+	// 	return
+	// }
 
 	// Verify Auth
-	isUserAuthenticated, err := db.AuthUser(dummy_transaction, TEST_USERNAME, TEST_PASSWORD)
+	isUserAuthenticated, err := db.AuthUser(TEST_USERNAME, TEST_PASSWORD)
 	if err != nil {
 		t.Log("Error while Authenticating User")
 		t.Error(err)
@@ -162,7 +162,7 @@ func TestAuthUser(t *testing.T) {
 	}
 
 	// Verifying Incorrect Username & Pass
-	isUserAuthenticated, err = db.AuthUser(dummy_transaction, "", "")
+	isUserAuthenticated, err = db.AuthUser("", "")
 	if err != nil {
 		t.Log("Error while Authenticating User")
 		t.Error(err)

@@ -197,12 +197,7 @@ func CheckIfWorkspaceExists(username, workspace_name string) (bool, error) {
 
 // Returns Bool, if bool=false and err=nil, username or password incorrect
 func RegisterNewWorkspace(username, password, workspace_name string) (bool, error) {
-	tx, err := db.Begin()
-	if err != nil {
-		return false, err
-	}
-
-	ifAuth, err := AuthUser(tx, username, password)
+	ifAuth, err := AuthUser(username, password)
 	if err != nil {
 		return false, fmt.Errorf("error Could not Auth User.\nError: %v", err)
 	}
@@ -212,26 +207,17 @@ func RegisterNewWorkspace(username, password, workspace_name string) (bool, erro
 	}
 
 	query := "INSERT INTO workspaces (username, workspace_name) VALUES (?,?)"
-	if _, err = tx.Exec(query, username, workspace_name); err != nil {
-		tx.Rollback()
+	if _, err = db.Exec(query, username, workspace_name); err != nil {
 		return false, fmt.Errorf("error Could not Execute Insert Statement for Register Workspace.\nError: %v", err)
-	}
-
-	if err = tx.Commit(); err != nil {
-		if rollback_err := tx.Rollback(); rollback_err != nil {
-			return false, fmt.Errorf("could Not RollBack transaction during a commit error.\nError: %v", rollback_err)
-		}
-		return false, fmt.Errorf("could not Commit transaction.\nError: %v", err)
 	}
 
 	return true, nil
 }
 
-func AuthUser(tx *sql.Tx, username, password string) (bool, error) {
+func AuthUser(username, password string) (bool, error) {
 	query := "SELECT 1 FROM users WHERE username=? AND password=?"
-	rows, err := tx.Query(query, username, password)
+	rows, err := db.Query(query, username, password)
 	if err != nil {
-		tx.Rollback()
 		return false, err
 	}
 	defer rows.Close()
@@ -245,12 +231,7 @@ func AuthUser(tx *sql.Tx, username, password string) (bool, error) {
 }
 
 func UpdateUserIP(username, password, ip_addr, port string) error {
-	tx, err := db.Begin()
-	if err != nil {
-		return err
-	}
-
-	ifAuth, err := AuthUser(tx, username, password)
+	ifAuth, err := AuthUser(username, password)
 	if err != nil {
 		return fmt.Errorf("error Could not Auth User.\nError: %v", err)
 	}
@@ -266,17 +247,9 @@ func UpdateUserIP(username, password, ip_addr, port string) error {
 	query := `INSERT OR REPLACE INTO currentuserip (username, ip_addr, port)
 	VALUES (?,?,?);`
 
-	_, err = tx.Exec(query, username, ip_addr, port)
+	_, err = db.Exec(query, username, ip_addr, port)
 	if err != nil {
-		tx.Rollback()
 		return fmt.Errorf("error Could not Update Users IP.\nError: %v", err)
-	}
-
-	if err = tx.Commit(); err != nil {
-		if rollback_err := tx.Rollback(); rollback_err != nil {
-			return fmt.Errorf("could Not RollBack transaction during a commit error.\nError: %v", rollback_err)
-		}
-		return fmt.Errorf("could not Commit transaction.\nError: %v", err)
 	}
 
 	return nil
@@ -327,12 +300,7 @@ func GetWorkspaceList(username string) ([]string, error) {
 //
 //	5 -> server error
 func RegisterUserToWorkspace(username, password, workspace_name, connection_username string) (int, error) {
-	tx, err := db.Begin()
-	if err != nil {
-		return 5, err
-	}
-
-	ifAuth, err := AuthUser(tx, username, password)
+	ifAuth, err := AuthUser(username, password)
 	if err != nil {
 		return 5, fmt.Errorf("error Could not Auth User.\nError: %v", err)
 	}
@@ -358,7 +326,7 @@ workspace_exists:
 	{
 		ifExist, err := VerifyUserExistsInUsersTable(connection_username)
 		if err != nil {
-			tx.Rollback()
+			// tx.Rollback()
 			return 5, fmt.Errorf("error in Verifying if connection exists.\nError: %v", err)
 		}
 
@@ -369,17 +337,9 @@ workspace_exists:
 		query := `INSERT INTO workspaceconnection (workspace_name, owner_username, connection_username)
 		VALUES (?,?,?);`
 
-		_, err = tx.Exec(query, workspace_name, username, connection_username)
+		_, err = db.Exec(query, workspace_name, username, connection_username)
 		if err != nil {
-			tx.Rollback()
 			return 5, fmt.Errorf("error Could not Register New Conection to Workspace.\nError: %v", err)
-		}
-
-		if err = tx.Commit(); err != nil {
-			if rollback_err := tx.Rollback(); rollback_err != nil {
-				return 5, fmt.Errorf("could Not RollBack transaction during a commit error.\nError: %v", rollback_err)
-			}
-			return 5, fmt.Errorf("could not Commit transaction.\nError: %v", err)
 		}
 
 		return 0, nil
@@ -448,15 +408,9 @@ func GetUserIP(username string) (string, error) {
 
 // Ip:Port, error
 func GetIPAddrUsingUsername(myusername, mypassword, usernameIp string) (string, error) {
-	tx, err := db.Begin()
-	if err != nil {
-		return "", err
-	}
-
-	ifAuth, err := AuthUser(tx, myusername, mypassword)
+	ifAuth, err := AuthUser(myusername, mypassword)
 	if err != nil {
 		return "", errors.Join(errors.New("error Could not Auth User."), err)
-		// return "",  fmt.Errorf("error Could not Auth User.\nError: %v", err)
 	}
 
 	if !ifAuth {
@@ -503,25 +457,18 @@ func GetAllMyConnectedWorkspaceInfo(username, password string) (UsersConnectionI
 	// [X] Retrieve IPs of owner_username in IPs Table
 
 	// TODO: [ ] Check Auth without tx
-	tx, err := db.Begin()
-	if err != nil {
-		return usersConnectionInfo, err
-	}
+	// tx, err := db.Begin()
+	// if err != nil {
+	// 	return usersConnectionInfo, err
+	// }
 
-	ifAuth, err := AuthUser(tx, username, password)
+	ifAuth, err := AuthUser(username, password)
 	if err != nil {
 		return usersConnectionInfo, fmt.Errorf("error Could not Auth User.\nError: %v", err)
 	}
 
 	if !ifAuth {
 		return usersConnectionInfo, fmt.Errorf("error Incorrect user credentials.\nError: %v", err)
-	}
-
-	if err = tx.Commit(); err != nil {
-		if rollback_err := tx.Rollback(); rollback_err != nil {
-			return usersConnectionInfo, fmt.Errorf("could Not RollBack transaction during a commit error.\nError: %v", rollback_err)
-		}
-		return usersConnectionInfo, fmt.Errorf("could not Commit transaction.\nError: %v", err)
 	}
 
 	query := "SELECT workspace_name, owner_username FROM workspaceconnection WHERE connection_username = ?"
@@ -532,8 +479,6 @@ func GetAllMyConnectedWorkspaceInfo(username, password string) (UsersConnectionI
 	defer rows.Close()
 
 	for rows.Next() {
-		// 	workspace_name	TEXT,
-		// 	owner_username TEXT,
 		var workspaceName string
 		var ownerUsername string
 		if err := rows.Scan(&workspaceName); err != nil {
