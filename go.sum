@@ -4,6 +4,8 @@ github.com/ButterHost69/kcp-go v1.0.4 h1:m0NCKxeRyfrap3FrSY/8hPt3rd7iSVX4Gy+s5Fj
 github.com/ButterHost69/kcp-go v1.0.4/go.mod h1:/ECsUnFLsAZkfWFp0xFgJZUHKy8zNA9aBjam3q60uJI=
 github.com/ButterHost69/kcp-go v1.0.6 h1:Ue5G8PGiE080idhj/jnZ36SM6PBS92k4kLSJXClGpaU=
 github.com/ButterHost69/kcp-go v1.0.6/go.mod h1:/ECsUnFLsAZkfWFp0xFgJZUHKy8zNA9aBjam3q60uJI=
+github.com/ButterHost69/kcp-go v1.0.8 h1:+DjUQCcE/bod85WQDGSYVsRw05lY99MMIc5H/2adNSc=
+github.com/ButterHost69/kcp-go v1.0.8/go.mod h1:/ECsUnFLsAZkfWFp0xFgJZUHKy8zNA9aBjam3q60uJI=
 github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=
 github.com/client9/misspell v0.3.4/go.mod h1:qj6jICC3Q7zFZvVWo7KLAzC3yx5G7kyvSDkc90ppPyw=
 github.com/cncf/udpa/go v0.0.0-20191209042840-269d4d468f6f/go.mod h1:M8M6+tZqaGXZJjfX53e64911xZQV5JYwmTeXPW+k8Sc=

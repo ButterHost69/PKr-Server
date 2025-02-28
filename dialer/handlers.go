@@ -55,14 +55,14 @@ func callWithContextAndConn(ctx context.Context, rpcname string, args interface{
 
 	select {
 	case <-ctx.Done():
-		// if err := c.Close(); err != nil {
-		// 	return fmt.Errorf("RPC call timed out - %s\nAlso Error in Closing RPC %v", ripaddr, err)
-		// }
+		if err := c.Close(); err != nil {
+			return fmt.Errorf("RPC call timed out - %s\nAlso Error in Closing RPC %v", ripaddr, err)
+		}
 		return fmt.Errorf("RPC call timed out - %s", ripaddr)
 	case err := <-done:
-		// if cerr := c.Close(); err != nil {
-		// 	return fmt.Errorf("%v, Also Error in Closing RPC %v", err, cerr)
-		// }
+		if cerr := c.Close(); err != nil {
+			return fmt.Errorf("%v, Also Error in Closing RPC %v", err, cerr)
+		}
 		return err
 	}
 }
