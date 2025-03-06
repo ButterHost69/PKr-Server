@@ -72,9 +72,10 @@ func (c *gobServerCodec) Close() error {
 
 
 
-func NewCustomServeCodec(conn *kcp.UDPSession) *CustomServeCodec {
+func NewCustomServeCodec(conn *kcp.UDPSession, sugar *zap.SugaredLogger) *CustomServeCodec {
 	newCustomCodec := &CustomServeCodec{
 		conn: conn,
+		sugar: sugar,
 	}
 
 	buf := bufio.NewWriter(conn)
@@ -158,7 +159,7 @@ func InitServer(port string, sugar *zap.SugaredLogger) error {
 		sugar.Infof("New incoming connection from %s", remoteAddr)
 		// go rpc.ServeConn(session)
 		go func(session *kcp.UDPSession) {
-			customCodec := NewCustomServeCodec(session)
+			customCodec := NewCustomServeCodec(session, sugar)
 			rpc.ServeCodec(customCodec)
 		}(session)
 	}
