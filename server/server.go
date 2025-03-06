@@ -91,14 +91,17 @@ func NewCustomServeCodec(conn *kcp.UDPSession, sugar *zap.SugaredLogger) *Custom
 }
 
 func (c *CustomServeCodec) ReadRequestHeader(r *rpc.Request) error {
+	c.sugar.Info("ReadRequestHeader")
 	return c.defaultCodec.ReadRequestHeader(r)
 }
 
 func (c *CustomServeCodec) ReadRequestBody(x interface{}) error {
+	c.sugar.Info("ReadRequestBody")
 	return c.defaultCodec.ReadRequestBody(x)
 }
 
 func (c *CustomServeCodec) WriteResponse(r *rpc.Response, x interface{}) error {
+	c.sugar.Info("WriteResponse")
 	return c.defaultCodec.WriteResponse(r,x)
 }
 
@@ -159,8 +162,15 @@ func InitServer(port string, sugar *zap.SugaredLogger) error {
 		sugar.Infof("New incoming connection from %s", remoteAddr)
 		// go rpc.ServeConn(session)
 		go func(session *kcp.UDPSession) {
+			sugar.Info("Creating CustomServeCodec for Session - ", remoteAddr)
 			customCodec := NewCustomServeCodec(session, sugar)
-			rpc.ServeCodec(customCodec)
+			sugar.Info("Serving Connection to Codec for Session - ", remoteAddr)
+			err := rpc.ServeRequest(customCodec)
+			if err != nil {
+				sugar.Debugf("error in serving request to session: %s, error - %v", remoteAddr, err)
+			}
+			sugar.Info("Serve Codec Done Calling Close for Session - ", remoteAddr)
+			customCodec.Close()
 		}(session)
 	}
 
