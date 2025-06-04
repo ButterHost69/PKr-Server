@@ -40,7 +40,7 @@ func (h *Handler) Ping(req PingRequest, res *PingResponse) error {
 
 	res.Response = 200
 	h.sugar.Infof("Ping & Updates IP For User %s, %s:%s", req.Username, req.PublicIP, req.PublicPort)
-	time.Sleep(5 * time.Minute)
+	time.Sleep(15 * time.Second)
 	h.sugar.Infof("Sending Pong For User %s, %s:%s", req.Username, req.PublicIP, req.PublicPort)
 	return nil
 }

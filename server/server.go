@@ -9,8 +9,7 @@ import (
 	"go.uber.org/zap"
 )
 
-
-func InitServer(port string, sugar *zap.SugaredLogger) error{
+func InitServer(port string, sugar *zap.SugaredLogger) error {
 
 	udpaddr, err := net.ResolveUDPAddr("udp", port)
 	if err != nil {
@@ -19,11 +18,11 @@ func InitServer(port string, sugar *zap.SugaredLogger) error{
 
 	conn, err := net.ListenUDP("udp", udpaddr)
 	if err != nil {
-		return  errors.WithStack(err)
+		return errors.WithStack(err)
 	}
 
 	handler := Handler{
-		Conn: conn,
+		Conn:  conn,
 		sugar: sugar,
 	}
 
@@ -33,7 +32,6 @@ func InitServer(port string, sugar *zap.SugaredLogger) error{
 		return err
 	}
 
-	
 	// ServeConn(block BlockCrypt, dataShards, parityShards int, conn net.PacketConn)
 	// ListenWithOptions(laddr string, block BlockCrypt, dataShards, parityShards int)
 	// ListenWithOptions(laddr, nil, 0, 0)
@@ -52,7 +50,7 @@ func InitServer(port string, sugar *zap.SugaredLogger) error{
 		}
 		remoteAddr := session.RemoteAddr().String()
 		sugar.Infof("New incoming connection from %s", remoteAddr)
+		session.SetNoDelay(0, 1000, 0, 0)
 		go rpc.ServeConn(session)
 	}
-
 }

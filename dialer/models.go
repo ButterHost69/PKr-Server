@@ -7,7 +7,7 @@ import (
 )
 
 type ClientDialer struct {
-	Conn *net.UDPConn
+	Conn  *net.UDPConn
 	Sugar *zap.SugaredLogger
 }
 

@@ -40,7 +40,8 @@ func callWithContextAndConn(ctx context.Context, rpcname string, args interface{
 	if err != nil {
 		return err
 	}
-	
+	conn.SetNoDelay(0, 1000, 0, 0)
+
 	// Find a Way to close the kcp conn without closing UDP Connection
 	// defer conn.Close()
 
@@ -75,11 +76,11 @@ func (h *ClientDialer) CallNotifyToPunch(sendersUsername, sendersIP, sendersPort
 	req.SendersIP = sendersIP
 	req.SendersPort = sendersPort
 
-	ctx, cancel := context.WithTimeout(context.Background(), 25*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 35*time.Second)
 	defer cancel()
 
-	rpcname := CLIENT_BACKGROUND_SERVER_HANDLER+".NotifyToPunch"
-	h.Sugar.Infof("Dialing RPC %s - Req: %v to %s", rpcname, req, recvIpAddr)	
+	rpcname := CLIENT_BACKGROUND_SERVER_HANDLER + ".NotifyToPunch"
+	h.Sugar.Infof("Dialing RPC %s - Req: %v to %s", rpcname, req, recvIpAddr)
 	if err := callWithContextAndConn(ctx, CLIENT_BACKGROUND_SERVER_HANDLER+".NotifyToPunch", req, &res, recvIpAddr, h.Conn); err != nil {
 		return res, errors.Join(errors.New("Error in Calling RPC."), err)
 	}
