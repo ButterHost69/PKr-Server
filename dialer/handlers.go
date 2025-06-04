@@ -40,13 +40,16 @@ func callWithContextAndConn(ctx context.Context, rpcname string, args interface{
 	if err != nil {
 		return err
 	}
-	conn.SetNoDelay(0, 5000, 0, 0)
+	defer conn.Close()
+	conn.SetNoDelay(0, 15000, 0, 0)
+	conn.SetDeadline(time.Now().Add(15 * time.Second)) // Overall timeout
+	conn.SetACKNoDelay(false)                          // Batch ACKs to reduce traffic
 
 	// Find a Way to close the kcp conn without closing UDP Connection
 	// defer conn.Close()
 
 	c := rpc.NewClient(conn)
-	// defer c.Close()
+	defer c.Close()
 
 	// Create a channel to handle the RPC call with context
 	done := make(chan error, 1)
