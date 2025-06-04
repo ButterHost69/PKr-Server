@@ -50,7 +50,7 @@ func InitServer(port string, sugar *zap.SugaredLogger) error {
 		}
 		remoteAddr := session.RemoteAddr().String()
 		sugar.Infof("New incoming connection from %s", remoteAddr)
-		session.SetNoDelay(0, 1000, 0, 0)
+		session.SetNoDelay(0, 5000, 0, 0)
 		go rpc.ServeConn(session)
 	}
 }

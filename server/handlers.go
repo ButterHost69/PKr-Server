@@ -5,7 +5,6 @@ import (
 	"math/rand"
 	"net"
 	"strconv"
-	"time"
 
 	"github.com/ButterHost69/PKr-Server/db"
 	"github.com/ButterHost69/PKr-Server/dialer"
@@ -39,9 +38,10 @@ func (h *Handler) Ping(req PingRequest, res *PingResponse) error {
 	}
 
 	res.Response = 200
-	h.sugar.Infof("Ping & Updates IP For User %s, %s:%s", req.Username, req.PublicIP, req.PublicPort)
-	time.Sleep(15 * time.Second)
-	h.sugar.Infof("Sending Pong For User %s, %s:%s", req.Username, req.PublicIP, req.PublicPort)
+	res.PingNum = req.PingNum
+	h.sugar.Infof("Ping %d & Updates IP For User %s, %s:%s", req.PingNum, req.Username, req.PublicIP, req.PublicPort)
+	// time.Sleep(15 * time.Second)
+	// h.sugar.Infof("Sending Pong For User %s, %s:%s", req.Username, req.PublicIP, req.PublicPort)
 	return nil
 }
 

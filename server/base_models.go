@@ -1,6 +1,7 @@
 package server
 
 type PingRequest struct {
+	PingNum    int
 	PublicIP   string
 	PublicPort string
 
@@ -9,6 +10,7 @@ type PingRequest struct {
 }
 
 type PingResponse struct {
+	PingNum  int
 	Response int
 }
 
