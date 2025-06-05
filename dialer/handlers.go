@@ -41,8 +41,10 @@ func callWithContextAndConn(ctx context.Context, rpcname string, args interface{
 		return err
 	}
 	defer conn.Close()
-	conn.SetNoDelay(0, 15000, 0, 0)
-	conn.SetDeadline(time.Now().Add(30 * time.Second)) // Overall timeout
+	conn.SetWindowSize(2, 32)                               // Only 2 unacked packets maximum
+	conn.SetWriteDeadline(time.Now().Add(10 * time.Second)) // Limits total retry time
+	conn.SetNoDelay(0, 20000, 0, 0)
+	conn.SetDeadline(time.Now().Add(25 * time.Second)) // Overall timeout
 	conn.SetACKNoDelay(false)                          // Batch ACKs to reduce traffic
 
 	// Find a Way to close the kcp conn without closing UDP Connection
