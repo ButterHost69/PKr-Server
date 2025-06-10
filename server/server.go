@@ -8,6 +8,7 @@ import (
 	"log"
 	"net"
 	"net/rpc"
+	"sync"
 	"time"
 
 	"github.com/pkg/errors"
@@ -156,6 +157,7 @@ func InitServer(port string, sugar *zap.SugaredLogger) error {
 	}
 
 	sentResponse := make(map[string]bool)
+	var sentResponseMutex sync.Mutex
 	sugar.Info("Started KCP Server...")
 	for {
 		session, err := lis.AcceptKCP()
@@ -167,6 +169,7 @@ func InitServer(port string, sugar *zap.SugaredLogger) error {
 		sugar.Infof("New incoming connection from %s", remoteAddr)
 		
 		// Ik this is shit, but what can i do ....
+		sentResponseMutex.Lock()
 		if sentResponse[remoteAddr] == true{
 			var buff []byte = make([]byte, 1024)
 			size, err := session.Read(buff)
@@ -176,6 +179,8 @@ func InitServer(port string, sugar *zap.SugaredLogger) error {
 			if size == 24 {
 				sugar.Info("The Incoming connection from %s", remoteAddr, " is treated as response ack")
 				sugar.Info("Ignoring %s", remoteAddr, " is treated as response ack")
+				sentResponseMutex.Unlock()
+
 				sentResponse[remoteAddr] = false
 				continue
 			} else {
@@ -183,6 +188,7 @@ func InitServer(port string, sugar *zap.SugaredLogger) error {
 				sugar.Info("Treating as Connection")
 			}
 		}
+		sentResponseMutex.Unlock()
 
 		go func(session *kcp.UDPSession) {
 			session.SetWindowSize(2, 32)                               // Only 2 unacked packets maximum
@@ -203,7 +209,11 @@ func InitServer(port string, sugar *zap.SugaredLogger) error {
 			sugar.Info("Response Sent 👍")	
 			sugar.Info("Serve Codec Done Calling Close for Session - ", remoteAddr)
 			customCodec.Close() // Could you believe this - This guy send the Response ... How ??
+			
+			sentResponseMutex.Lock()
 			sentResponse[remoteAddr] = true
+			sugar.Info("Locking Sent Response Map Close for Session - ", remoteAddr, " Map - ", sentResponse)
+			sentResponseMutex.Unlock()
 		}(session)
 		
 	}
