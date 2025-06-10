@@ -35,6 +35,7 @@ func (h *Handler) Ping(req PingRequest, res *PingResponse) error {
 	if err := db.UpdateUserIP(req.Username, req.Password, req.PublicIP, req.PublicPort); err != nil {
 		res.Response = 203
 		h.sugar.Errorf("Could Not Update IP For User %s : Err: %v", req.Username, err)
+		h.sugar.Errorf("Remove Later: Username : %s --- Password:%s", req.Username, req.Password)
 	}
 
 	res.Response = 200
