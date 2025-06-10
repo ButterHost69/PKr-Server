@@ -167,7 +167,7 @@ func InitServer(port string, sugar *zap.SugaredLogger) error {
 		sugar.Infof("New incoming connection from %s", remoteAddr)
 		
 		// Ik this is shit, but what can i do ....
-		if sentResponse[remoteAddr] != true{
+		if sentResponse[remoteAddr] == true{
 			var buff []byte = make([]byte, 1024)
 			size, err := session.Read(buff)
 			if err != nil {
