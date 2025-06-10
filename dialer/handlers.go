@@ -40,12 +40,18 @@ func callWithContextAndConn(ctx context.Context, rpcname string, args interface{
 	if err != nil {
 		return err
 	}
-	
+	defer conn.Close()
+	conn.SetWindowSize(2, 32)                               // Only 2 unacked packets maximum
+	conn.SetWriteDeadline(time.Now().Add(10 * time.Second)) // Limits total retry time
+	conn.SetNoDelay(0, 20000, 0, 0)
+	conn.SetDeadline(time.Now().Add(25 * time.Second)) // Overall timeout
+	conn.SetACKNoDelay(false)                          // Batch ACKs to reduce traffic
+
 	// Find a Way to close the kcp conn without closing UDP Connection
 	// defer conn.Close()
 
 	c := rpc.NewClient(conn)
-	// defer c.Close()
+	defer c.Close()
 
 	// Create a channel to handle the RPC call with context
 	done := make(chan error, 1)
@@ -75,11 +81,11 @@ func (h *ClientDialer) CallNotifyToPunch(sendersUsername, sendersIP, sendersPort
 	req.SendersIP = sendersIP
 	req.SendersPort = sendersPort
 
-	ctx, cancel := context.WithTimeout(context.Background(), 25*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 35*time.Second)
 	defer cancel()
 
-	rpcname := CLIENT_BACKGROUND_SERVER_HANDLER+".NotifyToPunch"
-	h.Sugar.Infof("Dialing RPC %s - Req: %v to %s", rpcname, req, recvIpAddr)	
+	rpcname := CLIENT_BACKGROUND_SERVER_HANDLER + ".NotifyToPunch"
+	h.Sugar.Infof("Dialing RPC %s - Req: %v to %s", rpcname, req, recvIpAddr)
 	if err := callWithContextAndConn(ctx, CLIENT_BACKGROUND_SERVER_HANDLER+".NotifyToPunch", req, &res, recvIpAddr, h.Conn); err != nil {
 		return res, errors.Join(errors.New("Error in Calling RPC."), err)
 	}

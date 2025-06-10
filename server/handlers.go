@@ -38,7 +38,10 @@ func (h *Handler) Ping(req PingRequest, res *PingResponse) error {
 	}
 
 	res.Response = 200
-	h.sugar.Infof("Updates IP For User %s, %s:%s", req.Username, req.PublicIP, req.PublicPort)
+	res.PingNum = req.PingNum
+	h.sugar.Infof("Ping %d & Updates IP For User %s, %s:%s", req.PingNum, req.Username, req.PublicIP, req.PublicPort)
+	// time.Sleep(15 * time.Second)
+	// h.sugar.Infof("Sending Pong For User %s, %s:%s", req.Username, req.PublicIP, req.PublicPort)
 	return nil
 }
 
@@ -126,7 +129,7 @@ func (h *Handler) RequestPunchFromReciever(req RequestPunchFromRecieverRequest, 
 
 	clientHandler := dialer.ClientDialer{
 		Sugar: h.sugar,
-		Conn: h.Conn,
+		Conn:  h.Conn,
 	}
 
 	response, err := clientHandler.CallNotifyToPunch(req.Username, req.SendersIP, req.SendersPort, ipaddr)
@@ -140,5 +143,16 @@ func (h *Handler) RequestPunchFromReciever(req RequestPunchFromRecieverRequest, 
 	res.RecieversPublicIP = response.RecieversPublicIP
 	res.RecieversPublicPort = response.RecieversPublicPort
 
+	return nil
+}
+
+func (h *Handler) NotifyNewPushToListeners(req NotifyNewPushToListenersRequest, res *NotifyNewPushToListenersResponse) error {
+	// Authenticate Sender
+	// Fetch the Receiver's IP from Receivers' List
+	// Send NotifyNewPush to all Receiver's PKr-Base(Also they're gonna start UDP Punching Process)
+	// Return the list of the receiver's who responded(active users) to Sender
+
+	h.sugar.Info("NotifyNewPushToListeners Called by " + req.SenderInfo.Username)
+	h.sugar.Info(req)
 	return nil
 }

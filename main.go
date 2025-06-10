@@ -19,10 +19,10 @@ var (
 
 var (
 	// Flag Variables
-	RELEASE bool
+	RELEASE  bool
 	TESTMODE bool
-	LOG_FP  string
-	IPADDR  string
+	LOG_FP   string
+	IPADDR   string
 )
 
 func Init() {
@@ -65,7 +65,6 @@ func Init() {
 
 		logger = zap.New(core)
 
-
 	} else {
 		encoderConfig := zap.NewProductionEncoderConfig()
 		encoderConfig.TimeKey = "time"
@@ -82,7 +81,6 @@ func Init() {
 	}
 
 }
-
 
 func Close() {
 	logger.Sync()
