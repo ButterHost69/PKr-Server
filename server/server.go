@@ -5,10 +5,10 @@ import (
 	"encoding/gob"
 	"fmt"
 	"io"
-	"log"
+	// "log"
 	"net"
 	"net/rpc"
-	"sync"
+	// "sync"
 	"time"
 
 	"github.com/pkg/errors"
@@ -41,25 +41,26 @@ func (c *gobServerCodec) ReadRequestBody(body any) error {
 }
 
 func (c *gobServerCodec) WriteResponse(r *rpc.Response, body any) (err error) {
-	if err = c.enc.Encode(r); err != nil {
-		if c.encBuf.Flush() == nil {
-			// Gob couldn't encode the header. Should not happen, so if it does,
-			// shut down the connection to signal that the connection is broken.
-			log.Println("rpc: gob error encoding response:", err)
-			c.Close()
-		}
-		return
-	}
-	if err = c.enc.Encode(body); err != nil {
-		if c.encBuf.Flush() == nil {
-			// Was a gob problem encoding the body but the header has been written.
-			// Shut down the connection to signal that the connection is broken.
-			log.Println("rpc: gob error encoding body:", err)
-			c.Close()
-		}
-		return
-	}
-	return c.encBuf.Flush()
+	// if err = c.enc.Encode(r); err != nil {
+	// 	if c.encBuf.Flush() == nil {
+	// 		// Gob couldn't encode the header. Should not happen, so if it does,
+	// 		// shut down the connection to signal that the connection is broken.
+	// 		log.Println("rpc: gob error encoding response:", err)
+	// 		c.Close()
+	// 	}
+	// 	return
+	// }
+	// if err = c.enc.Encode(body); err != nil {
+	// 	if c.encBuf.Flush() == nil {
+	// 		// Was a gob problem encoding the body but the header has been written.
+	// 		// Shut down the connection to signal that the connection is broken.
+	// 		log.Println("rpc: gob error encoding body:", err)
+	// 		c.Close()
+	// 	}
+	// 	return
+	// }
+
+	return nil
 }
 
 func (c *gobServerCodec) Close() error {
@@ -156,8 +157,8 @@ func InitServer(port string, sugar *zap.SugaredLogger) error {
 		return err
 	}
 
-	sentResponse := make(map[string]bool)
-	var sentResponseMutex sync.Mutex
+	// sentResponse := make(map[string]bool)
+	// var sentResponseMutex sync.Mutex
 	sugar.Info("Started KCP Server...")
 	for {
 		session, err := lis.AcceptKCP()
@@ -167,33 +168,33 @@ func InitServer(port string, sugar *zap.SugaredLogger) error {
 		}
 		remoteAddr := session.RemoteAddr().String()
 		sugar.Infof("New incoming connection from %s", remoteAddr)
-		sugar.Infof("Sent Response Map %v", sentResponse)
+		// sugar.Infof("Sent Response Map %v", sentResponse)
 		
 		
 		// Ik this is shit, but what can i do ....
-		sentResponseMutex.Lock()
-		sugar.Infof("Sent Response Map for Incomming Connection %v", sentResponse[remoteAddr])
-		if sentResponse[remoteAddr] {
-			var buff []byte = make([]byte, 1024)
-			size, err := session.Read(buff)
-			sugar.Infof("The Incoming connection from %s - Buffer - %v - Size: %v ", remoteAddr, buff, size)	
-			if err != nil {
-				sugar.Infof("The Incoming connection from %s", remoteAddr, "- Reading Buffer Error")	
-			}
+		// sentResponseMutex.Lock()
+		// sugar.Infof("Sent Response Map for Incomming Connection %v", sentResponse[remoteAddr])
+		// if sentResponse[remoteAddr] {
+		// 	var buff []byte = make([]byte, 1024)
+		// 	size, err := session.Read(buff)
+		// 	sugar.Infof("The Incoming connection from %s - Buffer - %v - Size: %v ", remoteAddr, buff, size)	
+		// 	if err != nil {
+		// 		sugar.Infof("The Incoming connection from %s", remoteAddr, "- Reading Buffer Error")	
+		// 	}
 
-			if size == 24 {
-				sugar.Infof("The Incoming connection from %s", remoteAddr, " is treated as response ack")
-				sugar.Infof("Ignoring %s", remoteAddr, " is treated as response ack")
-				sentResponseMutex.Unlock()
+		// 	if size == 24 {
+		// 		sugar.Infof("The Incoming connection from %s", remoteAddr, " is treated as response ack")
+		// 		sugar.Infof("Ignoring %s", remoteAddr, " is treated as response ack")
+		// 		sentResponseMutex.Unlock()
 
-				sentResponse[remoteAddr] = false
-				continue
-			} else {
-				sugar.Info("Buffer Size - ", size)
-				sugar.Info("Treating as Connection")
-			}
-		}
-		sentResponseMutex.Unlock()
+		// 		sentResponse[remoteAddr] = false
+		// 		continue
+		// 	} else {
+		// 		sugar.Info("Buffer Size - ", size)
+		// 		sugar.Info("Treating as Connection")
+		// 	}
+		// }
+		// sentResponseMutex.Unlock()
 
 		go func(session *kcp.UDPSession) {
 			session.SetWindowSize(2, 32)                               // Only 2 unacked packets maximum
@@ -215,10 +216,10 @@ func InitServer(port string, sugar *zap.SugaredLogger) error {
 			sugar.Info("Serve Codec Done Calling Close for Session - ", remoteAddr)
 			customCodec.Close() // Could you believe this - This guy send the Response ... How ??
 			
-			sentResponseMutex.Lock()
-			sentResponse[remoteAddr] = true
-			sugar.Info("Locking Sent Response Map Close for Session - ", remoteAddr, " Map - ", sentResponse)
-			sentResponseMutex.Unlock()
+			// sentResponseMutex.Lock()
+			// sentResponse[remoteAddr] = true
+			// sugar.Info("Locking Sent Response Map Close for Session - ", remoteAddr, " Map - ", sentResponse)
+			// sentResponseMutex.Unlock()
 		}(session)
 		
 	}
