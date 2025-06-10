@@ -3,7 +3,6 @@ package server
 import (
 	"bufio"
 	"encoding/gob"
-	"fmt"
 	"io"
 	"log"
 	"net"
@@ -109,15 +108,17 @@ func (c *CustomServeCodec) WriteResponse(r *rpc.Response, x interface{}) error {
 // Close can be called multiple times and must be idempotent.
 func (c *CustomServeCodec) Close() error {
 	c.sugar.Info("Closing RPC Connection for - ", c.conn.RemoteAddr().String())
-	if err := c.defaultCodec.Close(); err != nil {
-		return err
-	}
+	// if err := c.defaultCodec.Close(); err != nil {
+	// 	return err
+	// }
 
-	if err := c.conn.Close(); err != nil {
-		return fmt.Errorf("error in closing kcp session, err - %v", err)
-	}
+	// if err := c.conn.Close(); err != nil {
+	// 	return fmt.Errorf("error in closing kcp session, err - %v", err)
+	// }
 
-	return nil
+	// return nil
+
+	return c.defaultCodec.Close()
 }
 
 func InitServer(port string, sugar *zap.SugaredLogger) error {
