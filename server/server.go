@@ -155,7 +155,7 @@ func InitServer(port string, sugar *zap.SugaredLogger) error {
 		return err
 	}
 
-	session_ongoing := make(map[string]*CustomServeCodec)
+	sentResponse := make(map[string]bool)
 	sugar.Info("Started KCP Server...")
 	for {
 		session, err := lis.AcceptKCP()
@@ -167,11 +167,21 @@ func InitServer(port string, sugar *zap.SugaredLogger) error {
 		sugar.Infof("New incoming connection from %s", remoteAddr)
 		
 		// Ik this is shit, but what can i do ....
-		if session_ongoing[remoteAddr] != nil{
-			sugar.Info("The Incoming connection from %s", remoteAddr, " is treated as response ack")
-			sugar.Info("Serve Codec Done Calling Close for Session - ", remoteAddr)
-
-			session_ongoing[remoteAddr].Close()
+		if sentResponse[remoteAddr] != true{
+			var buff []byte = make([]byte, 1024)
+			size, err := session.Read(buff)
+			if err != nil {
+				sugar.Info("The Incoming connection from %s", remoteAddr, "- Reading Buffer Error")	
+			}
+			if size == 24 {
+				sugar.Info("The Incoming connection from %s", remoteAddr, " is treated as response ack")
+				sugar.Info("Ignoring %s", remoteAddr, " is treated as response ack")
+				sentResponse[remoteAddr] = false
+				continue
+			} else {
+				sugar.Info("Buffer Size - ", size)
+				sugar.Info("Treating as Connection")
+			}
 		}
 
 		go func(session *kcp.UDPSession) {
@@ -190,9 +200,10 @@ func InitServer(port string, sugar *zap.SugaredLogger) error {
 			if err != nil {
 				sugar.Debugf("error in serving request to session: %s, error - %v", remoteAddr, err)
 			}
-			sugar.Info("Response Sent 👍")
-
-			// customCodec.Close()
+			sugar.Info("Response Sent 👍")	
+			sugar.Info("Serve Codec Done Calling Close for Session - ", remoteAddr)
+			customCodec.Close() // Could you believe this - This guy send the Response ... How ??
+			sentResponse[remoteAddr] = true
 		}(session)
 		
 	}
