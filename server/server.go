@@ -167,18 +167,22 @@ func InitServer(port string, sugar *zap.SugaredLogger) error {
 		}
 		remoteAddr := session.RemoteAddr().String()
 		sugar.Infof("New incoming connection from %s", remoteAddr)
+		sugar.Infof("Sent Response Map %v", sentResponse)
+
 		
 		// Ik this is shit, but what can i do ....
 		sentResponseMutex.Lock()
-		if sentResponse[remoteAddr] == true{
+		if sentResponse[remoteAddr] == true {
 			var buff []byte = make([]byte, 1024)
 			size, err := session.Read(buff)
+			sugar.Infof("The Incoming connection from %s - Buffer - %v - Size: %v ", remoteAddr, buff, size)	
 			if err != nil {
-				sugar.Info("The Incoming connection from %s", remoteAddr, "- Reading Buffer Error")	
+				sugar.Infof("The Incoming connection from %s", remoteAddr, "- Reading Buffer Error")	
 			}
+
 			if size == 24 {
-				sugar.Info("The Incoming connection from %s", remoteAddr, " is treated as response ack")
-				sugar.Info("Ignoring %s", remoteAddr, " is treated as response ack")
+				sugar.Infof("The Incoming connection from %s", remoteAddr, " is treated as response ack")
+				sugar.Infof("Ignoring %s", remoteAddr, " is treated as response ack")
 				sentResponseMutex.Unlock()
 
 				sentResponse[remoteAddr] = false
