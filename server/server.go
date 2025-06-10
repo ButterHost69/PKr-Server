@@ -59,7 +59,7 @@ func (c *gobServerCodec) WriteResponse(r *rpc.Response, body any) (err error) {
 	// 	}
 	// 	return
 	// }
-
+	c.Close()
 	return nil
 }
 
