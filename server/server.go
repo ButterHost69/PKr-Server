@@ -168,11 +168,12 @@ func InitServer(port string, sugar *zap.SugaredLogger) error {
 		remoteAddr := session.RemoteAddr().String()
 		sugar.Infof("New incoming connection from %s", remoteAddr)
 		sugar.Infof("Sent Response Map %v", sentResponse)
-
+		
 		
 		// Ik this is shit, but what can i do ....
 		sentResponseMutex.Lock()
-		if sentResponse[remoteAddr] == true {
+		sugar.Infof("Sent Response Map for Incomming Connection %v", sentResponse[remoteAddr])
+		if sentResponse[remoteAddr] {
 			var buff []byte = make([]byte, 1024)
 			size, err := session.Read(buff)
 			sugar.Infof("The Incoming connection from %s - Buffer - %v - Size: %v ", remoteAddr, buff, size)	
