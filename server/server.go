@@ -3,7 +3,6 @@ package server
 import (
 	"net"
 	"net/rpc"
-	"time"
 
 	"github.com/pkg/errors"
 	"github.com/xtaci/kcp-go"
@@ -49,13 +48,15 @@ func InitServer(port string, sugar *zap.SugaredLogger) error {
 			sugar.Error("Error accepting KCP connection: ", err)
 			continue
 		}
+		// TODO: Call session.Close()
+
 		remoteAddr := session.RemoteAddr().String()
 		sugar.Infof("New incoming connection from %s", remoteAddr)
-		session.SetWindowSize(2, 32)                               // Only 2 unacked packets maximum
-		session.SetWriteDeadline(time.Now().Add(10 * time.Second)) // Limits total retry time
-		session.SetNoDelay(0, 15000, 0, 0)
-		session.SetDeadline(time.Now().Add(20 * time.Second)) // Overall timeout
-		session.SetACKNoDelay(false)                          // Batch ACKs to reduce traffic
+		// session.SetWindowSize(2, 32) // Only 2 unacked packets maximum
+		// session.SetWriteDeadline(time.Now().Add(10 * time.Second)) // Limits total retry time
+		// session.SetNoDelay(1, 15000, 0, 0)
+		// session.SetDeadline(time.Now().Add(20 * time.Second)) // Overall timeout
+		// session.SetACKNoDelay(true)
 		go rpc.ServeConn(session)
 	}
 }

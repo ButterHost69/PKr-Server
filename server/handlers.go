@@ -2,9 +2,12 @@ package server
 
 import (
 	"errors"
+	"fmt"
 	"math/rand"
 	"net"
 	"strconv"
+	"strings"
+	"time"
 
 	"github.com/ButterHost69/PKr-Server/db"
 	"github.com/ButterHost69/PKr-Server/dialer"
@@ -113,7 +116,7 @@ func (h *Handler) RequestPunchFromReciever(req RequestPunchFromRecieverRequest, 
 		return err
 	}
 
-	ipaddr, err := db.GetIPAddrUsingUsername(req.Username, req.Password, req.RecieversUsername)
+	ipaddr, last_ping_timestamp, err := db.GetIPAddrUsingUsername(req.Username, req.Password, req.RecieversUsername)
 	if err != nil {
 		if errors.Is(err, ErrCouldNotAuth) {
 			h.sugar.Info("User Failed to Auth: ", req.Username)
@@ -123,6 +126,25 @@ func (h *Handler) RequestPunchFromReciever(req RequestPunchFromRecieverRequest, 
 			h.sugar.Error(errors.Join(err, errors.New("errors in RequestPunchFromReciever.")))
 			return err
 		}
+	}
+
+	// Trim the " m=+..." part
+	parts := strings.Split(last_ping_timestamp, " m=")
+	trimmedTimeStr := parts[0]
+
+	// Layout matching the remaining string
+	layout := "2006-01-02 15:04:05.999999999 -0700 MST"
+
+	// Parse
+	last_ping_timestamp_obj, err := time.Parse(layout, trimmedTimeStr)
+	if err != nil {
+		fmt.Println("Error parsing time:", err)
+		return err
+	}
+
+	curr_time := time.Now()
+	if curr_time.Sub(last_ping_timestamp_obj) > 5*time.Minute {
+		return fmt.Errorf("workspace owner seems to be offline for now\nSource: RequestPunchFromReciever")
 	}
 
 	h.sugar.Info("RequestPunchFromReciever: IP retrieved for user - ", req.RecieversUsername, " - ", ipaddr)

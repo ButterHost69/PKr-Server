@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"time"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -37,7 +38,8 @@ func createAllTables() error {
 	currentUserIPTableQuery := `CREATE TABLE IF NOT EXISTS currentuserip (
 		username TEXT PRIMARY KEY,
 		ip_addr TEXT,
-		port TEXT
+		port TEXT,
+		timestamp TEXT
 	);`
 
 	workspaceConnectionsQuery := `CREATE TABLE IF NOT EXISTS workspaceconnection(
@@ -110,12 +112,20 @@ func InsertDummyData() error {
 		return fmt.Errorf("error Could not Execute Insert Statement for workspace dummy data.\nError: %v", err)
 	}
 
-	query = `INSERT INTO currentuserip (username, ip_addr, port) VALUES
-				('user#123', '192.168.1.1', '8080'),
-				('user#456', '192.168.1.2', '8081'),
-				('user#789', '192.168.1.3', '8082'),
-				('user#101', '192.168.1.4', '8083'),
-				('user#102', '192.168.1.5', '8084');`
+	// query = `INSERT INTO currentuserip (username, ip_addr, port) VALUES
+	// 			('user#123', '192.168.1.1', '8080'),
+	// 			('user#456', '192.168.1.2', '8081'),
+	// 			('user#789', '192.168.1.3', '8082'),
+	// 			('user#101', '192.168.1.4', '8083'),
+	// 			('user#102', '192.168.1.5', '8084');`
+
+	query = `INSERT INTO currentuserip (username, ip_addr, port, timestamp) VALUES
+			('user#123', '192.168.1.1', '8080', '2025-06-11T10:00:00Z'),
+			('user#456', '192.168.1.2', '8081', '2025-06-11T10:05:00Z'),
+			('user#789', '192.168.1.3', '8082', '2025-06-11T10:10:00Z'),
+			('user#101', '192.168.1.4', '8083', '2025-06-11T10:15:00Z'),
+			('user#102', '192.168.1.5', '8084', '2025-06-11T10:20:00Z');`
+
 	if _, err = tx.Exec(query); err != nil {
 		tx.Rollback()
 		return fmt.Errorf("error Could not Execute Insert Statement for currentuserip dummy data.\nError: %v", err)
@@ -244,10 +254,12 @@ func UpdateUserIP(username, password, ip_addr, port string) error {
 	// SET ip_addr=?, port=?
 	// WHERE username=?`
 
-	query := `INSERT OR REPLACE INTO currentuserip (username, ip_addr, port)
-	VALUES (?,?,?);`
+	curr_timestamp := time.Now().String()
 
-	_, err = db.Exec(query, username, ip_addr, port)
+	query := `INSERT OR REPLACE INTO currentuserip (username, ip_addr, port, timestamp)
+	VALUES (?,?,?,?);`
+
+	_, err = db.Exec(query, username, ip_addr, port, curr_timestamp)
 	if err != nil {
 		return fmt.Errorf("error Could not Update Users IP.\nError: %v", err)
 	}
@@ -383,45 +395,46 @@ func VerifyConnectionUserExistsInWorkspaceConnectionTable(workspace_name, owner_
 
 }
 
-func GetUserIP(username string) (string, error) {
-	query := `SELECT ip_addr, port FROM currentuserip WHERE username=?;`
+func GetUserIPWithLastPingTime(username string) (string, string, error) {
+	query := `SELECT ip_addr, port, timestamp FROM currentuserip WHERE username=?;`
 
 	rows, err := db.Query(query, username)
 	if err != nil {
-		return "", fmt.Errorf("failed to query users: %v", err)
+		return "", "", fmt.Errorf("failed to query users: %v", err)
 	}
 	defer rows.Close()
 
 	ip := ""
 	port := ""
+	last_ping_timestamp := ""
 	for rows.Next() {
-		if err := rows.Scan(&ip, &port); err != nil {
-			return "", fmt.Errorf("failed to scan user's ip: %v", err)
+		if err := rows.Scan(&ip, &port, &last_ping_timestamp); err != nil {
+			return "", "", fmt.Errorf("failed to scan user's ip: %v", err)
 		}
 	}
 
 	if ip == "" || port == "" {
-		return "", fmt.Errorf("no workspaces found for user ID %s", username)
+		return "", "", fmt.Errorf("no workspaces found for user ID %s", username)
 	}
-	return ip + ":" + port, nil
+	return ip + ":" + port, last_ping_timestamp, nil
 }
 
 // Ip:Port, error
-func GetIPAddrUsingUsername(myusername, mypassword, usernameIp string) (string, error) {
+func GetIPAddrUsingUsername(myusername, mypassword, usernameIp string) (string, string, error) {
 	ifAuth, err := AuthUser(myusername, mypassword)
 	if err != nil {
-		return "", errors.Join(errors.New("error Could not Auth User."), err)
+		return "", "", errors.Join(errors.New("error Could not Auth User."), err)
 	}
 
 	if !ifAuth {
-		return "", fmt.Errorf("error Incorrect user credentials.\nError: %v", err)
+		return "", "", fmt.Errorf("error Incorrect user credentials.\nError: %v", err)
 	}
 
-	ipaddr, err := GetUserIP(usernameIp)
+	ipaddr, last_ping_timestamp, err := GetUserIPWithLastPingTime(usernameIp)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
-	return ipaddr, nil
+	return ipaddr, last_ping_timestamp, nil
 }
 
 func GetAllMyConnectedWorkspaceInfo(username, password string) (UsersConnectionInfo, error) {
@@ -489,7 +502,7 @@ func GetAllMyConnectedWorkspaceInfo(username, password string) (UsersConnectionI
 			return usersConnectionInfo, fmt.Errorf("failed to scan owner username: %v", err)
 		}
 
-		ip, err := GetUserIP(ownerUsername)
+		ip, _, err := GetUserIPWithLastPingTime(ownerUsername)
 		if err != nil {
 			return usersConnectionInfo, fmt.Errorf("failed to retrieve workspace owner ip: %v", err)
 		}
