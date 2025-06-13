@@ -84,57 +84,57 @@ func TestCreateNewUser(t *testing.T) {
 	}
 }
 
-func TestRegisterNewWorkspace(t *testing.T) {
-	if UNIT_FUNC_TESTING {
-		TestCreateNewUser(t)
-	}
+// func TestRegisterNewWorkspace(t *testing.T) {
+// 	if UNIT_FUNC_TESTING {
+// 		TestCreateNewUser(t)
+// 	}
 
-	isNewWorkSpaceRegistered, err := db.RegisterNewWorkspace(TEST_USERNAME, TEST_PASSWORD, TEST_WORKSPACE_NAME)
-	if err != nil {
-		t.Log("Error while Registering New Workspace")
-		t.Error(err)
-		return
-	}
+// 	isNewWorkSpaceRegistered, err := db.RegisterNewWorkspace(TEST_USERNAME, TEST_PASSWORD, TEST_WORKSPACE_NAME)
+// 	if err != nil {
+// 		t.Log("Error while Registering New Workspace")
+// 		t.Error(err)
+// 		return
+// 	}
 
-	if !isNewWorkSpaceRegistered {
-		t.Log("User is not Authenticated")
-		return
-	}
+// 	if !isNewWorkSpaceRegistered {
+// 		t.Log("User is not Authenticated")
+// 		return
+// 	}
 
-	// Verify New Workspace Registration
-	query := "SELECT 1 FROM workspaces WHERE username = ? AND workspace_name = ?;"
+// 	// Verify New Workspace Registration
+// 	query := "SELECT 1 FROM workspaces WHERE username = ? AND workspace_name = ?;"
 
-	res, err := test_db.Query(query, TEST_USERNAME, TEST_WORKSPACE_NAME)
-	if err != nil {
-		t.Log("Cannot Verify Registered Workspace")
-		t.Error(err)
-		return
-	}
-	defer res.Close()
+// 	res, err := test_db.Query(query, TEST_USERNAME, TEST_WORKSPACE_NAME)
+// 	if err != nil {
+// 		t.Log("Cannot Verify Registered Workspace")
+// 		t.Error(err)
+// 		return
+// 	}
+// 	defer res.Close()
 
-	if !res.Next() {
-		t.Error("Workspace Name & Username can't be found in DB")
-		return
-	}
-}
+// 	if !res.Next() {
+// 		t.Error("Workspace Name & Username can't be found in DB")
+// 		return
+// 	}
+// }
 
-func TestCheckIfWorkspaceExists(t *testing.T) {
-	if UNIT_FUNC_TESTING {
-		TestRegisterNewWorkspace(t)
-	}
+// func TestCheckIfWorkspaceExists(t *testing.T) {
+// 	if UNIT_FUNC_TESTING {
+// 		TestRegisterNewWorkspace(t)
+// 	}
 
-	doesWorkspaceExists, err := db.CheckIfWorkspaceExists(TEST_USERNAME, TEST_WORKSPACE_NAME)
-	if err != nil {
-		t.Log("Error while checking if Workspace Exists or not")
-		t.Error(err)
-		return
-	}
+// 	doesWorkspaceExists, err := db.CheckIfWorkspaceExists(TEST_USERNAME, TEST_WORKSPACE_NAME)
+// 	if err != nil {
+// 		t.Log("Error while checking if Workspace Exists or not")
+// 		t.Error(err)
+// 		return
+// 	}
 
-	if !doesWorkspaceExists {
-		t.Error("Workspace Doesn't Exists in DB")
-		return
-	}
-}
+// 	if !doesWorkspaceExists {
+// 		t.Error("Workspace Doesn't Exists in DB")
+// 		return
+// 	}
+// }
 
 func TestAuthUser(t *testing.T) {
 	if UNIT_FUNC_TESTING {
@@ -172,45 +172,5 @@ func TestAuthUser(t *testing.T) {
 	if isUserAuthenticated {
 		t.Error("Incorrect User is Authenticated")
 		return
-	}
-}
-
-func TestUpdateUserIP(t *testing.T) {
-	if UNIT_FUNC_TESTING {
-		TestCreateNewUser(t)
-	}
-
-	err := db.UpdateUserIP(TEST_USERNAME, TEST_PASSWORD, MY_TEST_IP, MY_TEST_PORT)
-	if err != nil {
-		t.Log("Error while Updating User IP")
-		t.Error(err)
-		return
-	}
-
-	// Verify if User IP is Updated
-	query := "SELECT ip_addr, port FROM currentuserip where username = ?;"
-
-	res, err := test_db.Query(query, TEST_USERNAME)
-	if err != nil {
-		t.Log("Error while Verifying Updation of User IP")
-		t.Error(err)
-		return
-	}
-	defer res.Close()
-
-	var ip, port string
-	if res.Next() {
-		if err = res.Scan(&ip, &port); err != nil {
-			t.Log("Error while fetching values of Scan while Verifying Updation of User IP")
-			t.Error(err)
-			return
-		}
-	} else {
-		t.Error("No Previous Entry of User in Table")
-		return
-	}
-
-	if ip != MY_TEST_IP || port != MY_TEST_PORT {
-		t.Error("User IP isn't Updated in DB")
 	}
 }

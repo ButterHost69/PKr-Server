@@ -1,29 +1,18 @@
 module github.com/ButterHost69/PKr-Server
 
-go 1.23.4
+go 1.24.0
+
+require github.com/gorilla/websocket v1.5.3
 
 require (
-	github.com/mattn/go-sqlite3 v1.14.24
-	github.com/xtaci/kcp-go v5.4.20+incompatible
-	go.uber.org/zap v1.27.0
+	github.com/mattn/go-sqlite3 v1.14.28
+	google.golang.org/grpc v1.73.0
+	google.golang.org/protobuf v1.36.6
 )
 
 require (
-	github.com/templexxx/cpu v0.1.1 // indirect
-	github.com/templexxx/xorsimd v0.4.3 // indirect
-)
-
-require (
-	github.com/ButterHost69/kcp-go v1.0.8
-	github.com/klauspost/cpuid/v2 v2.2.8 // indirect
-	github.com/klauspost/reedsolomon v1.12.4 // indirect
-	github.com/pkg/errors v0.9.1 // indirect
-	github.com/templexxx/cpufeat v0.0.0-20180724012125-cef66df7f161 // indirect
-	github.com/templexxx/xor v0.0.0-20191217153810-f85b25db303b // indirect
-	github.com/tjfoc/gmsm v1.4.1 // indirect
-	github.com/xtaci/lossyconn v0.0.0-20200209145036-adba10fffc37 // indirect
-	go.uber.org/multierr v1.10.0 // indirect
-	golang.org/x/crypto v0.33.0 // indirect
-	golang.org/x/net v0.35.0 // indirect
-	golang.org/x/sys v0.30.0 // indirect
+	golang.org/x/net v0.38.0 // indirect
+	golang.org/x/sys v0.31.0 // indirect
+	golang.org/x/text v0.23.0 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20250324211829-b45e905df463 // indirect
 )

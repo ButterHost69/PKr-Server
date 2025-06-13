@@ -2,9 +2,10 @@ package db
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
-	"time"
+	"log"
+
+	"github.com/ButterHost69/PKr-Server/pb"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -13,16 +14,7 @@ var (
 	db *sql.DB
 )
 
-// FIXME: UpdateUserIP Err: could Not RollBack transaction during a commit error.\nError: sql: transaction has already been committed or rolled back"}
-
 func createAllTables() error {
-	tx, err := db.Begin()
-	if err != nil {
-		return fmt.Errorf("error: Could Not Initiate the Transaction.\nError: %v", err)
-	}
-
-	// TODO: [ ] Send Hashed Passwords from the client side
-	// TODO : [ ] Ideally server should recv encrypted passwords (IDK How ??)
 	usersTableQuery := `CREATE TABLE IF NOT EXISTS users (
 		username TEXT PRIMARY KEY,
 		password TEXT
@@ -31,501 +23,312 @@ func createAllTables() error {
 	workspaceTableQuery := `CREATE TABLE IF NOT EXISTS workspaces (
 		username TEXT,
 		workspace_name TEXT,
+		last_hash TEXT,
 
 		PRIMARY KEY(username, workspace_name)
-	);`
-
-	currentUserIPTableQuery := `CREATE TABLE IF NOT EXISTS currentuserip (
-		username TEXT PRIMARY KEY,
-		ip_addr TEXT,
-		port TEXT,
-		timestamp TEXT
 	);`
 
 	workspaceConnectionsQuery := `CREATE TABLE IF NOT EXISTS workspaceconnection(
 		workspace_name	TEXT,
 		owner_username TEXT,
-		connection_username TEXT
+		listener_username TEXT
 	);`
 
-	_, err = tx.Exec(usersTableQuery)
+	_, err := db.Exec(usersTableQuery)
 	if err != nil {
-		tx.Rollback()
+		log.Println("Error:", err)
+		log.Println("Description: Could Not Create users Table")
+		log.Println("Source: createAllTables()")
 		return err
 	}
 
-	_, err = tx.Exec(workspaceTableQuery)
+	_, err = db.Exec(workspaceTableQuery)
 	if err != nil {
-		tx.Rollback()
+		log.Println("Error:", err)
+		log.Println("Description: Could Not Create workspace Table")
+		log.Println("Source: createAllTables()")
 		return err
 	}
 
-	_, err = tx.Exec(currentUserIPTableQuery)
+	_, err = db.Exec(workspaceConnectionsQuery)
 	if err != nil {
-		tx.Rollback()
+		log.Println("Error:", err)
+		log.Println("Description: Could Not Create workspaceconnection Table")
+		log.Println("Source: createAllTables()")
 		return err
 	}
-
-	_, err = tx.Exec(workspaceConnectionsQuery)
-	if err != nil {
-		tx.Rollback()
-		return err
-	}
-
-	if err = tx.Commit(); err != nil {
-		if rollback_err := tx.Rollback(); rollback_err != nil {
-			return fmt.Errorf("could Not RollBack transaction during a commit error.\nError: %v", rollback_err)
-		}
-		return fmt.Errorf("could not Commit transaction.\nError: %v", err)
-	}
-
 	return nil
-
 }
 
 func InsertDummyData() error {
-	tx, err := db.Begin()
-	if err != nil {
-		return err
-	}
-
 	query := `INSERT INTO users (username, password) VALUES
 				('user#123', 'password123'),
 				('user#456', 'password456'),
 				('user#789', 'password789'),
 				('user#101', 'password101'),
 				('user#102', 'password102');`
-	if _, err = tx.Exec(query); err != nil {
-		tx.Rollback()
-		return fmt.Errorf("error Could not Execute Insert Statement for users dummy data.\nError: %v", err)
+
+	_, err := db.Exec(query)
+	if err != nil {
+		log.Println("Error:", err)
+		log.Println("Description: Could Not Insert Dummy Data into users Table")
+		log.Println("Source: InsertDummyData()")
+		return err
 	}
 
-	query = `INSERT INTO workspaces (username, workspace_name) VALUES
-				('user#123', 'WorkspaceA'),
-				('user#123', 'WorkspaceB'),
-				('user#456', 'WorkspaceC'),
-				('user#789', 'WorkspaceD'),
-				('user#101', 'WorkspaceE'),
-				('user#102', 'WorkspaceF');`
-	if _, err = tx.Exec(query); err != nil {
-		tx.Rollback()
-		return fmt.Errorf("error Could not Execute Insert Statement for workspace dummy data.\nError: %v", err)
+	query = `INSERT INTO workspaces (username, workspace_name, last_hash) VALUES
+				('user#123', 'WorkspaceA', 'Hash1'),
+				('user#123', 'WorkspaceB', 'Hash12'),
+				('user#456', 'WorkspaceC', 'Hash13'),
+				('user#789', 'WorkspaceD', 'Hash14'),
+				('user#101', 'WorkspaceE', 'Hash15'),
+				('user#102', 'WorkspaceF', 'Hash16');`
+
+	_, err = db.Exec(query)
+	if err != nil {
+		log.Println("Error:", err)
+		log.Println("Description: Could Not Insert Dummy Data into workspaces Table")
+		log.Println("Source: InsertDummyData()")
+		return err
 	}
 
-	// query = `INSERT INTO currentuserip (username, ip_addr, port) VALUES
-	// 			('user#123', '192.168.1.1', '8080'),
-	// 			('user#456', '192.168.1.2', '8081'),
-	// 			('user#789', '192.168.1.3', '8082'),
-	// 			('user#101', '192.168.1.4', '8083'),
-	// 			('user#102', '192.168.1.5', '8084');`
-
-	query = `INSERT INTO currentuserip (username, ip_addr, port, timestamp) VALUES
-			('user#123', '192.168.1.1', '8080', '2025-06-11T10:00:00Z'),
-			('user#456', '192.168.1.2', '8081', '2025-06-11T10:05:00Z'),
-			('user#789', '192.168.1.3', '8082', '2025-06-11T10:10:00Z'),
-			('user#101', '192.168.1.4', '8083', '2025-06-11T10:15:00Z'),
-			('user#102', '192.168.1.5', '8084', '2025-06-11T10:20:00Z');`
-
-	if _, err = tx.Exec(query); err != nil {
-		tx.Rollback()
-		return fmt.Errorf("error Could not Execute Insert Statement for currentuserip dummy data.\nError: %v", err)
-	}
-
-	query = `INSERT INTO workspaceconnection (workspace_name, owner_username, connection_username) VALUES
+	query = `INSERT INTO workspaceconnection (workspace_name, owner_username, listener_username) VALUES
 				('WorkspaceA', 'user#123', 'user#456'),
 				('WorkspaceA', 'user#123', 'user#789'),
 				('WorkspaceB', 'user#123', 'user#101'),
 				('WorkspaceC', 'user#456', 'user#102'),
 				('WorkspaceD', 'user#789', 'user#101'),
 				('WorkspaceE', 'user#101', 'user#123');`
-	if _, err = tx.Exec(query); err != nil {
-		tx.Rollback()
-		return fmt.Errorf("error Could not Execute Insert Statement for workspaceconnection dummy data.\nError: %v", err)
-	}
 
-	if err = tx.Commit(); err != nil {
-		if rollback_err := tx.Rollback(); rollback_err != nil {
-			return fmt.Errorf("could Not RollBack transaction during a commit error.\nError: %v", rollback_err)
-		}
-		return fmt.Errorf("could not Commit transaction.\nError: %v", err)
+	_, err = db.Exec(query)
+	if err != nil {
+		log.Println("Error:", err)
+		log.Println("Description: Could Not Insert Dummy Data into workspaceconnection Table")
+		log.Println("Source: InsertDummyData()")
+		return err
 	}
 
 	return nil
 }
 
-// If inMemory :
-//
-//	True -> Returns the db pointer
-//	False -> Doesn't return shit
 func InitSQLiteDatabase(TESTMODE bool, database_path string) (*sql.DB, error) {
 	var err error
-	// db, err = sql.Open("sqlite3", "./server_database.db")
-	// db, err = sql.Open("sqlite3", "./test_database.db")
 	db, err = sql.Open("sqlite3", database_path)
-
 	if err != nil {
-		return nil, fmt.Errorf("error: Could Not Start The Database.\nError: %v", err)
+		log.Println("Error:", err)
+		log.Printf("Description: Could Not Open '%s' Sqlite3 DataBase File\n", database_path)
+		log.Println("Source: InitSQLiteDatabase()")
+		return nil, err
 	}
 
 	err = createAllTables()
 	if err != nil {
-		return nil, fmt.Errorf("error: Could Not Create Tables.\nError: %v", err)
+		log.Println("Error:", err)
+		log.Println("Description: Could Not Create All Tables")
+		log.Println("Source: InitSQLiteDatabase()")
+
+		return nil, err
 	}
 
 	if TESTMODE {
 		return db, nil
 	}
-
 	return nil, nil
+}
+
+func AuthUser(username, password string) (bool, error) {
+	query := "SELECT 1 FROM users WHERE username=? AND password=?;"
+	rows, err := db.Query(query, username, password)
+	if err != nil {
+		return false, err
+	}
+	defer rows.Close()
+	return rows.Next(), nil
+}
+
+func CheckIfUsernameIsAlreadyTaken(username string) (bool, error) {
+	query := "SELECT 1 FROM users WHERE username=?;"
+	rows, err := db.Query(query, username)
+	if err != nil {
+		return false, err
+	}
+	defer rows.Close()
+	return rows.Next(), nil
 }
 
 func CreateNewUser(username, password string) error {
 	query := "INSERT INTO users (username, password) VALUES (?, ?)"
 	_, err := db.Exec(query, username, password)
 	if err != nil {
-		return fmt.Errorf("error: Could Create New User %s .\nError: %v", username, err)
+		log.Println("Error:", err)
+		log.Println("Description: Could Not Register a New User")
+		log.Println("Source: CreateNewUser()")
+		return err
 	}
-
 	return nil
 }
 
 func CheckIfWorkspaceExists(username, workspace_name string) (bool, error) {
-	query := `SELECT * FROM workspaces WHERE username=? AND workspace_name=?`
+	query := `SELECT 1 FROM workspaces WHERE username=? AND workspace_name=?;`
 
 	rows, err := db.Query(query, username, workspace_name)
 	if err != nil {
-		return false, fmt.Errorf("failed to query users: %v", err)
-	}
-	defer rows.Close()
-
-	if rows.Next() {
-		return true, nil
-	}
-
-	return false, nil
-}
-
-// Returns Bool, if bool=false and err=nil, username or password incorrect
-func RegisterNewWorkspace(username, password, workspace_name string) (bool, error) {
-	ifAuth, err := AuthUser(username, password)
-	if err != nil {
-		return false, fmt.Errorf("error Could not Auth User.\nError: %v", err)
-	}
-
-	if !ifAuth {
-		return false, nil
-	}
-
-	query := "INSERT INTO workspaces (username, workspace_name) VALUES (?,?)"
-	if _, err = db.Exec(query, username, workspace_name); err != nil {
-		return false, fmt.Errorf("error Could not Execute Insert Statement for Register Workspace.\nError: %v", err)
-	}
-
-	return true, nil
-}
-
-func AuthUser(username, password string) (bool, error) {
-	query := "SELECT 1 FROM users WHERE username=? AND password=?"
-	rows, err := db.Query(query, username, password)
-	if err != nil {
+		log.Println("Error:", err)
+		log.Println("Description: Could Not Check if Workspace Already Exists")
+		log.Println("Source: CheckIfWorkspaceExists()")
 		return false, err
 	}
 	defer rows.Close()
-
-	// Check if any rows retrieved
-	if !rows.Next() {
-		return false, nil
-	}
-
-	return true, nil
+	return rows.Next(), nil
 }
 
-func UpdateUserIP(username, password, ip_addr, port string) error {
+func RegisterNewWorkspace(username, password, workspace_name, last_hash string) error {
 	ifAuth, err := AuthUser(username, password)
 	if err != nil {
-		return fmt.Errorf("error Could not Auth User.\nError: %v", err)
+		log.Println("Error:", err)
+		log.Println("Description: Could Not Authenticate User")
+		log.Println("Source: RegisterNewWorkspace()")
+		return err
 	}
 
 	if !ifAuth {
-		return fmt.Errorf("error Incorrect user credentials.\nError: %v", err)
+		return fmt.Errorf("incorrect user credentials")
 	}
 
-	// query := `UPDATE TABLE currentuserip
-	// SET ip_addr=?, port=?
-	// WHERE username=?`
-
-	curr_timestamp := time.Now().String()
-
-	query := `INSERT OR REPLACE INTO currentuserip (username, ip_addr, port, timestamp)
-	VALUES (?,?,?,?);`
-
-	_, err = db.Exec(query, username, ip_addr, port, curr_timestamp)
+	doesWorkspaceAlreadyExists, err := CheckIfWorkspaceExists(username, workspace_name)
 	if err != nil {
-		return fmt.Errorf("error Could not Update Users IP.\nError: %v", err)
+		log.Println("Error:", err)
+		log.Println("Description: Could Not Check if Workspace Already Exists")
+		log.Println("Source: RegisterNewWorkspace()")
+		return err
 	}
 
+	if doesWorkspaceAlreadyExists {
+		return fmt.Errorf("workspace already exists")
+	}
+
+	query := "INSERT INTO workspaces (username, workspace_name, last_hash) VALUES (?,?,?);"
+	if _, err = db.Exec(query, username, workspace_name, last_hash); err != nil {
+		log.Println("Error:", err)
+		log.Println("Description: Could Not Insert into workspaces Table")
+		log.Println("Source: RegisterNewWorkspace()")
+		return err
+	}
 	return nil
 }
 
-func GetWorkspaceList(username string) ([]string, error) {
-	var workspaces []string
-
-	// Define the SQL query to select workspace names for the specific user
-	query := "SELECT workspace_name FROM workspaces WHERE username = ?"
-
-	// Execute the query and get the rows
-	rows, err := db.Query(query, username)
+func CheckIfWorkspaceConnectionAlreadyExists(workspace_name, owner_username, listener_username string) (bool, error) {
+	query := `SELECT * FROM workspaceconnection WHERE workspace_name=? AND owner_username=? AND listener_username=?;`
+	rows, err := db.Query(query, workspace_name, owner_username, listener_username)
 	if err != nil {
-		return nil, fmt.Errorf("failed to query workspaces: %v", err)
+		log.Println("Error:", err)
+		log.Println("Description: Cannot Check if the Workspace Connection Already Exists")
+		log.Println("Source: CheckIfWorkspaceConnectionAlreadyExists()")
+		return false, err
 	}
 	defer rows.Close()
-
-	// Loop through the rows and append each workspace name to the result slice
-	for rows.Next() {
-		var workspaceName string
-		if err := rows.Scan(&workspaceName); err != nil {
-			return nil, fmt.Errorf("failed to scan workspace name: %v", err)
-		}
-		workspaces = append(workspaces, workspaceName)
-	}
-
-	// Check for any row iteration errors
-	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("row iteration error: %v", err)
-	}
-
-	// If no workspaces found for the user, return an error
-	if len(workspaces) == 0 {
-		return nil, fmt.Errorf("no workspaces found for user ID %s", username)
-	}
-
-	// Return the list of workspace names
-	return workspaces, nil
+	return rows.Next(), nil
 }
 
-// Returns : 0 -> All Good
-//
-//	1 -> Authentication Error
-//	2 -> Workspace Doesn't Exists
-//
-// 3 -> connection user doesnt exists
-//
-//	5 -> server error
-func RegisterUserToWorkspace(username, password, workspace_name, connection_username string) (int, error) {
-	ifAuth, err := AuthUser(username, password)
-	if err != nil {
-		return 5, fmt.Errorf("error Could not Auth User.\nError: %v", err)
-	}
-
-	if !ifAuth {
-		return 1, fmt.Errorf("error Incorrect user credentials.\nError: %v", err)
-	}
-
-	workspaceList, err := GetWorkspaceList(username)
-	if err != nil {
-		return 5, err
-	}
-
-	for _, val := range workspaceList {
-		if val == workspace_name {
-			goto workspace_exists
-		}
-	}
-
-	// TODO: [X] Check if connection_username exists in users table
-	return 2, fmt.Errorf("error, workspace doesn't exist")
-workspace_exists:
-	{
-		ifExist, err := VerifyUserExistsInUsersTable(connection_username)
-		if err != nil {
-			// tx.Rollback()
-			return 5, fmt.Errorf("error in Verifying if connection exists.\nError: %v", err)
-		}
-
-		if !ifExist {
-			return 3, nil
-		}
-
-		query := `INSERT INTO workspaceconnection (workspace_name, owner_username, connection_username)
+func RegisterNewUserToWorkspace(workspace_name, workspace_owner_name, listener_username string) error {
+	query := `INSERT INTO workspaceconnection (workspace_name, owner_username, listener_username)
 		VALUES (?,?,?);`
 
-		_, err = db.Exec(query, workspace_name, username, connection_username)
-		if err != nil {
-			return 5, fmt.Errorf("error Could not Register New Conection to Workspace.\nError: %v", err)
-		}
-
-		return 0, nil
+	_, err := db.Exec(query, workspace_name, workspace_owner_name, listener_username)
+	if err != nil {
+		log.Println("Error:", err)
+		log.Println("Description: Could Not Register New Listener to Workspace")
+		log.Println("Source: RegisterNewUserToWorkspace()")
+		return err
 	}
+	return nil
 }
 
-func VerifyUserExistsInUsersTable(username string) (bool, error) {
-	// query := "SELECT username FROM users"
-	query := `SELECT username FROM users WHERE username=?`
-
-	rows, err := db.Query(query, username)
+func GetWorkspaceListeners(workspace_name, workspace_owner_name string) ([]string, error) {
+	query := `SELECT listener_username FROM workspaceconnection WHERE workspace_name=? AND owner_username=?;`
+	rows, err := db.Query(query, workspace_name, workspace_owner_name)
 	if err != nil {
-		return false, fmt.Errorf("failed to query users: %v", err)
+		log.Println("Error:", err)
+		log.Println("Description: Cannot Check if the Workspace Connection Already Exists")
+		log.Println("Source: GetWorkspaceListeners()")
+		return nil, err
 	}
 	defer rows.Close()
 
-	if rows.Next() {
-		return true, nil
-	}
-
-	return false, nil
-
-}
-
-func VerifyConnectionUserExistsInWorkspaceConnectionTable(workspace_name, owner_username, connection_username string) (bool, error) {
-	// query := "SELECT username FROM users"
-	// query := `SELECT username FROM users WHERE username=?`
-	query := `SELECT * FROM workspaceconnection WHERE workspace_name=? AND owner_username=? AND connection_username=?;`
-
-	rows, err := db.Query(query, workspace_name, owner_username, connection_username)
-	if err != nil {
-		return false, fmt.Errorf("failed to query users: %v", err)
-	}
-	defer rows.Close()
-
-	if rows.Next() {
-		return true, nil
-	}
-
-	return false, nil
-
-}
-
-func GetUserIPWithLastPingTime(username string) (string, string, error) {
-	query := `SELECT ip_addr, port, timestamp FROM currentuserip WHERE username=?;`
-
-	rows, err := db.Query(query, username)
-	if err != nil {
-		return "", "", fmt.Errorf("failed to query users: %v", err)
-	}
-	defer rows.Close()
-
-	ip := ""
-	port := ""
-	last_ping_timestamp := ""
+	var workspace_listeners []string
+	var listener string
 	for rows.Next() {
-		if err := rows.Scan(&ip, &port, &last_ping_timestamp); err != nil {
-			return "", "", fmt.Errorf("failed to scan user's ip: %v", err)
+		if err = rows.Scan(&listener); err != nil {
+			log.Println("Error:", err)
+			log.Println("Description: Cannot Scan Workspace Listener from Result of SQL Query")
+			log.Println("Source: GetWorkspaceListeners()")
+			return nil, err
 		}
+		workspace_listeners = append(workspace_listeners, listener)
 	}
-
-	if ip == "" || port == "" {
-		return "", "", fmt.Errorf("no workspaces found for user ID %s", username)
-	}
-	return ip + ":" + port, last_ping_timestamp, nil
+	return workspace_listeners, nil
 }
 
-// Ip:Port, error
-func GetIPAddrUsingUsername(myusername, mypassword, usernameIp string) (string, string, error) {
-	ifAuth, err := AuthUser(myusername, mypassword)
+func GetAllWorkspaces() ([]*pb.WorkspaceInfo, error) {
+	query := "SELECT username, workspace_name FROM workspaces;"
+
+	rows, err := db.Query(query)
 	if err != nil {
-		return "", "", errors.Join(errors.New("error Could not Auth User."), err)
-	}
-
-	if !ifAuth {
-		return "", "", fmt.Errorf("error Incorrect user credentials.\nError: %v", err)
-	}
-
-	ipaddr, last_ping_timestamp, err := GetUserIPWithLastPingTime(usernameIp)
-	if err != nil {
-		return "", "", err
-	}
-	return ipaddr, last_ping_timestamp, nil
-}
-
-func GetAllMyConnectedWorkspaceInfo(username, password string) (UsersConnectionInfo, error) {
-	var usersConnectionInfo UsersConnectionInfo
-	// usersTableQuery := `CREATE TABLE IF NOT EXISTS users (
-	// 	username TEXT PRIMARY KEY,
-	// 	password TEXT
-	// );`
-
-	// workspaceTableQuery := `CREATE TABLE IF NOT EXISTS workspaces (
-	// 	username TEXT,
-	// 	workspace_name TEXT,
-
-	// 	PRIMARY KEY(username, workspace_name)
-	// );`
-
-	// currentUserIPTableQuery := `CREATE TABLE IF NOT EXISTS currentuserip (
-	// 	username TEXT PRIMARY KEY,
-	// 	ip_addr TEXT,
-	// 	port TEXT
-	// );`
-
-	// workspaceConnectionsQuery := `CREATE TABLE IF NOT EXISTS workspaceconnection(
-	// 	workspace_name	TEXT,
-	// 	owner_username TEXT,
-	// 	connection_username TEXT,
-
-	// 	PRIMARY KEY(workspace_name, owner_username)
-	// );`
-
-	// [X] Auth User
-	// [X] Check all users in workspaceconnection where connection_username == username
-	// [X] Retrieve IPs of owner_username in IPs Table
-
-	// TODO: [ ] Check Auth without tx
-	// tx, err := db.Begin()
-	// if err != nil {
-	// 	return usersConnectionInfo, err
-	// }
-
-	ifAuth, err := AuthUser(username, password)
-	if err != nil {
-		return usersConnectionInfo, fmt.Errorf("error Could not Auth User.\nError: %v", err)
-	}
-
-	if !ifAuth {
-		return usersConnectionInfo, fmt.Errorf("error Incorrect user credentials.\nError: %v", err)
-	}
-
-	query := "SELECT workspace_name, owner_username FROM workspaceconnection WHERE connection_username = ?"
-	rows, err := db.Query(query, username)
-	if err != nil {
-		return usersConnectionInfo, fmt.Errorf("failed to query in workspaceconnection: %v", err)
+		log.Println("Error while Fetching All Workspaces:", err)
+		log.Println("Source: GetAllWorkspaces()")
+		return nil, err
 	}
 	defer rows.Close()
+
+	var workspaces []*pb.WorkspaceInfo
+	var workspace_name, username string
 
 	for rows.Next() {
-		var workspaceName string
-		var ownerUsername string
-		if err := rows.Scan(&workspaceName); err != nil {
-			return usersConnectionInfo, fmt.Errorf("failed to scan workspace name: %v", err)
+		if err := rows.Scan(&username, &workspace_name); err != nil {
+			log.Println("Error while Scaning Workspaces:", err)
+			log.Println("Source: GetAllWorkspaces()")
+			return nil, err
 		}
-
-		if err := rows.Scan(&ownerUsername); err != nil {
-			return usersConnectionInfo, fmt.Errorf("failed to scan owner username: %v", err)
-		}
-
-		ip, _, err := GetUserIPWithLastPingTime(ownerUsername)
-		if err != nil {
-			return usersConnectionInfo, fmt.Errorf("failed to retrieve workspace owner ip: %v", err)
-		}
-
-		usersConnectionInfo.Connected_Workspace_List = append(usersConnectionInfo.Connected_Workspace_List, ConnectedWorkspaceInfo{
-			Workspace_Name: workspaceName,
-			Workspace_Ip:   ip,
+		workspaces = append(workspaces, &pb.WorkspaceInfo{
+			WorkspaceOwner: username,
+			WorkspaceName:  workspace_name,
 		})
 	}
 
-	// Check for any row iteration errors
-	if err := rows.Err(); err != nil {
-		return usersConnectionInfo, fmt.Errorf("row iteration error: %v", err)
-	}
-
-	// If no workspaces found for the user, return an error
-	if len(usersConnectionInfo.Connected_Workspace_List) == 0 {
-		return usersConnectionInfo, fmt.Errorf("no workspaces found for user ID %s", username)
-	}
-
-	return usersConnectionInfo, nil
+	return workspaces, nil
 }
 
-func CloseSQLiteDatabase() {
-	db.Close()
+func GetLastHashOfWorkspace(workspace_name, workspace_owner_name string) (string, error) {
+	query := "SELECT last_hash FROM workspaces WHERE username=? AND workspace_name=?;"
+
+	rows, err := db.Query(query, workspace_owner_name, workspace_name)
+	if err != nil {
+		log.Println("Error while Getting Lash Hash of Workspace:", err)
+		log.Println("Source: GetLastHashOfWorkspace()")
+		return "", err
+	}
+	defer rows.Close()
+
+	var last_hash string
+	if rows.Next() {
+		if err := rows.Scan(&last_hash); err != nil {
+			log.Println("Error while Scanning Lash Hash from Results:", err)
+			log.Println("Source: GetLastHashOfWorkspace()")
+			return "", err
+		}
+	}
+
+	return last_hash, nil
+}
+
+func UpdateLastHashOfWorkpace(workspace_name, workspace_owner_name, new_workspace_hash string) error {
+	query := "UPDATE workspaces SET last_hash=? WHERE username=? AND workspace_name=?;"
+
+	_, err := db.Exec(query, new_workspace_hash, workspace_owner_name, workspace_name)
+	if err != nil {
+		log.Println("Error while Updating Last Hash of Workspace:", err)
+		log.Println("Source: UpdateLastHashOfWorkpace()")
+		return err
+	}
+	return nil
 }
