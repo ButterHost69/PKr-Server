@@ -218,7 +218,7 @@ func RegisterNewWorkspace(username, password, workspace_name, last_hash string) 
 }
 
 func CheckIfWorkspaceConnectionAlreadyExists(workspace_name, owner_username, listener_username string) (bool, error) {
-	query := `SELECT * FROM workspaceconnection WHERE workspace_name=? AND owner_username=? AND listener_username=?;`
+	query := `SELECT 1 FROM workspaceconnection WHERE workspace_name=? AND owner_username=? AND listener_username=?;`
 	rows, err := db.Query(query, workspace_name, owner_username, listener_username)
 	if err != nil {
 		log.Println("Error:", err)
