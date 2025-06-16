@@ -10,6 +10,20 @@ R:
 	@del server_database.db
 	go run .
 
+
+# refresh
+ur:
+	@clear
+	export PATH=$$PATH:/usr/local/go/bin && go run .
+
+# Restart
+UR:
+	@clear
+	@echo Deleting server_database.db ...
+	rm -f server_database.db
+	export PATH=$$PATH:/usr/local/go/bin && go run .
+
+
 open-db:
 	@sqlite3 server_database.db
 
