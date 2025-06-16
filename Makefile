@@ -17,4 +17,6 @@ grpc-out:
 	protoc ./proto/*.proto --go_out=. --go-grpc_out=.
 
 upgrade-base:
-	go get "github.com/ButterHost69/PKr-Base"@latest
+	@echo Copy Paste this in Terminal -- Don't Run using Make
+	$$env:GOPRIVATE="github.com/ButterHost69"
+	go get github.com/ButterHost69/PKr-Base@latest
