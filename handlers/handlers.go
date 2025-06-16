@@ -118,7 +118,7 @@ func (s *CliServiceServer) RequestPunchFromReceiver(ctx context.Context, req *pb
 	var ok, invalid_flag bool
 	count := 0
 	for {
-		time.Sleep(10 * time.Second)
+		time.Sleep(5 * time.Second)
 		ws.NotifyToPunchResponseMapObj.Lock()
 		res, ok = ws.NotifyToPunchResponseMapObj.Map[req.WorkspaceOwnerUsername+req.ListenerUsername]
 		ws.NotifyToPunchResponseMapObj.Unlock()
@@ -247,25 +247,29 @@ func (s *CliServiceServer) NotifyNewPushToListeners(ctx context.Context, req *pb
 		return nil, fmt.Errorf("internal server error")
 	}
 
-	for _, listener := range workspace_listeners {
-		log.Println("Notifying Listener:", listener)
-		msg := models.NotifyNewPushToListeners{
-			WorkspaceOwnerUsername: req.WorkspaceOwnerUsername,
-			WorkspaceName:          req.WorkspaceName,
-			NewWorkspaceHash:       req.NewWorkspaceHash,
-		}
+	go func() {
+		for _, listener := range workspace_listeners {
+			time.Sleep(5 * time.Second) // Notify Each User After a Specific Delay
+			log.Println("Notifying Listener:", listener)
 
-		err = ws.NotifyNewPushToListenersDial(listener, msg)
-		if err != nil {
-			if err.Error() == "workspace listener is offline" {
+			msg := models.NotifyNewPushToListeners{
+				WorkspaceOwnerUsername: req.WorkspaceOwnerUsername,
+				WorkspaceName:          req.WorkspaceName,
+				NewWorkspaceHash:       req.NewWorkspaceHash,
+			}
+
+			err = ws.NotifyNewPushToListenersDial(listener, msg)
+			if err != nil {
+				if err.Error() == "workspace listener is offline" {
+					continue
+				}
+				log.Println("Error:", err)
+				log.Println("Description: Could Not Notify New Push to Listener")
+				log.Println("Source: NotifyNewPushToListeners()")
 				continue
 			}
-			log.Println("Error:", err)
-			log.Println("Description: Could Not Notify New Push to Listener")
-			log.Println("Source: NotifyNewPushToListeners()")
-			return nil, fmt.Errorf("internal server error")
 		}
-	}
+	}()
 
 	return &pb.NotifyNewPushToListenersResponse{}, nil
 }
