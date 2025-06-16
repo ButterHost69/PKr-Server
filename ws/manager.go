@@ -2,13 +2,17 @@ package ws
 
 import (
 	"log"
-
-	"github.com/ButterHost69/PKr-Server/models"
+	"sync"
 
 	"github.com/gorilla/websocket"
 )
 
-var connManager = models.ConnManager{
+type ConnManager struct {
+	sync.RWMutex
+	ConnPool map[string]*websocket.Conn
+}
+
+var connManager = ConnManager{
 	ConnPool: map[string]*websocket.Conn{},
 }
 

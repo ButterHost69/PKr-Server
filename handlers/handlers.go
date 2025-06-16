@@ -6,10 +6,10 @@ import (
 	"log"
 	"time"
 
-	pb "github.com/ButterHost69/PKr-Server/pb"
+	pb "github.com/ButterHost69/PKr-Base/pb"
 
+	"github.com/ButterHost69/PKr-Base/models"
 	"github.com/ButterHost69/PKr-Server/db"
-	"github.com/ButterHost69/PKr-Server/models"
 	"github.com/ButterHost69/PKr-Server/ws"
 )
 
@@ -118,14 +118,14 @@ func (s *CliServiceServer) RequestPunchFromReceiver(ctx context.Context, req *pb
 	var ok, invalid_flag bool
 	count := 0
 	for {
-		time.Sleep(10 * time.Second)
-		ws.NotifyToPunchResponseMap.Lock()
-		res, ok = ws.NotifyToPunchResponseMap.Map[req.WorkspaceOwnerUsername+req.ListenerUsername]
-		ws.NotifyToPunchResponseMap.Unlock()
+		time.Sleep(5 * time.Second)
+		ws.NotifyToPunchResponseMapObj.Lock()
+		res, ok = ws.NotifyToPunchResponseMapObj.Map[req.WorkspaceOwnerUsername+req.ListenerUsername]
+		ws.NotifyToPunchResponseMapObj.Unlock()
 		if ok {
-			ws.NotifyToPunchResponseMap.Lock()
-			delete(ws.NotifyToPunchResponseMap.Map, req.WorkspaceOwnerUsername+req.ListenerUsername)
-			ws.NotifyToPunchResponseMap.Unlock()
+			ws.NotifyToPunchResponseMapObj.Lock()
+			delete(ws.NotifyToPunchResponseMapObj.Map, req.WorkspaceOwnerUsername+req.ListenerUsername)
+			ws.NotifyToPunchResponseMapObj.Unlock()
 			break
 		}
 		if count == 6 {
@@ -247,25 +247,29 @@ func (s *CliServiceServer) NotifyNewPushToListeners(ctx context.Context, req *pb
 		return nil, fmt.Errorf("internal server error")
 	}
 
-	for _, listener := range workspace_listeners {
-		log.Println("Notifying Listener:", listener)
-		msg := models.NotifyNewPushToListeners{
-			WorkspaceOwnerUsername: req.WorkspaceOwnerUsername,
-			WorkspaceName:          req.WorkspaceName,
-			NewWorkspaceHash:       req.NewWorkspaceHash,
-		}
+	go func() {
+		for _, listener := range workspace_listeners {
+			time.Sleep(5 * time.Second) // Notify Each User After a Specific Delay
+			log.Println("Notifying Listener:", listener)
 
-		err = ws.NotifyNewPushToListenersDial(listener, msg)
-		if err != nil {
-			if err.Error() == "workspace listener is offline" {
+			msg := models.NotifyNewPushToListeners{
+				WorkspaceOwnerUsername: req.WorkspaceOwnerUsername,
+				WorkspaceName:          req.WorkspaceName,
+				NewWorkspaceHash:       req.NewWorkspaceHash,
+			}
+
+			err = ws.NotifyNewPushToListenersDial(listener, msg)
+			if err != nil {
+				if err.Error() == "workspace listener is offline" {
+					continue
+				}
+				log.Println("Error:", err)
+				log.Println("Description: Could Not Notify New Push to Listener")
+				log.Println("Source: NotifyNewPushToListeners()")
 				continue
 			}
-			log.Println("Error:", err)
-			log.Println("Description: Could Not Notify New Push to Listener")
-			log.Println("Source: NotifyNewPushToListeners()")
-			return nil, fmt.Errorf("internal server error")
 		}
-	}
+	}()
 
 	return &pb.NotifyNewPushToListenersResponse{}, nil
 }
