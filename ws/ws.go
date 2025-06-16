@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"sync"
 	"time"
 
+	"github.com/ButterHost69/PKr-Base/models"
 	"github.com/ButterHost69/PKr-Server/db"
-	"github.com/ButterHost69/PKr-Server/models"
 
 	"github.com/gorilla/websocket"
 )
@@ -18,13 +19,18 @@ const (
 	PING_WAIT_TIME = (PONG_WAIT_TIME * 9) / 10
 )
 
+type NotifyToPunchResponseMap struct {
+	sync.RWMutex
+	Map map[string]models.NotifyToPunchResponse
+}
+
+var NotifyToPunchResponseMapObj = NotifyToPunchResponseMap{Map: map[string]models.NotifyToPunchResponse{}}
+
 var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool {
 		return true // Allow all Origins
 	},
 }
-
-var NotifyToPunchResponseMap = models.NotifyToPunchResponseMap{Map: map[string]models.NotifyToPunchResponse{}}
 
 func handleNotifyToPunchResponse(msg models.WSMessage, username string) {
 	msg_bytes, err := json.Marshal(msg.Message)
@@ -39,9 +45,9 @@ func handleNotifyToPunchResponse(msg models.WSMessage, username string) {
 		log.Println("Source: handleNotifyToPunchResponse()")
 		return
 	}
-	NotifyToPunchResponseMap.Lock()
-	NotifyToPunchResponseMap.Map[username+msg_obj.ListenerUsername] = msg_obj
-	NotifyToPunchResponseMap.Unlock()
+	NotifyToPunchResponseMapObj.Lock()
+	NotifyToPunchResponseMapObj.Map[username+msg_obj.ListenerUsername] = msg_obj
+	NotifyToPunchResponseMapObj.Unlock()
 	log.Printf("Noti To Punch Res: %#v", msg_obj)
 }
 
@@ -106,14 +112,14 @@ func handleRequestPunchFromReceiverRequest(msg models.WSMessage, conn *websocket
 	count := 0
 	for {
 		time.Sleep(10 * time.Second)
-		NotifyToPunchResponseMap.Lock()
-		noti_to_punch_res, ok = NotifyToPunchResponseMap.Map[msg_obj.WorkspaceOwnerUsername+msg_obj.ListenerUsername]
-		fmt.Println(NotifyToPunchResponseMap.Map)
-		NotifyToPunchResponseMap.Unlock()
+		NotifyToPunchResponseMapObj.Lock()
+		noti_to_punch_res, ok = NotifyToPunchResponseMapObj.Map[msg_obj.WorkspaceOwnerUsername+msg_obj.ListenerUsername]
+		fmt.Println(NotifyToPunchResponseMapObj.Map)
+		NotifyToPunchResponseMapObj.Unlock()
 		if ok {
-			NotifyToPunchResponseMap.Lock()
-			delete(NotifyToPunchResponseMap.Map, msg_obj.WorkspaceOwnerUsername+msg_obj.ListenerUsername)
-			NotifyToPunchResponseMap.Unlock()
+			NotifyToPunchResponseMapObj.Lock()
+			delete(NotifyToPunchResponseMapObj.Map, msg_obj.WorkspaceOwnerUsername+msg_obj.ListenerUsername)
+			NotifyToPunchResponseMapObj.Unlock()
 			break
 		}
 		if count == 6 {

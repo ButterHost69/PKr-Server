@@ -5,9 +5,9 @@ import (
 	"net"
 	"net/http"
 
+	"github.com/ButterHost69/PKr-Base/pb"
 	"github.com/ButterHost69/PKr-Server/db"
 	"github.com/ButterHost69/PKr-Server/handlers"
-	"github.com/ButterHost69/PKr-Server/pb"
 	"github.com/ButterHost69/PKr-Server/utils"
 	"github.com/ButterHost69/PKr-Server/ws"
 

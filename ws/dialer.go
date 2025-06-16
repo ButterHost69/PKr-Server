@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/ButterHost69/PKr-Server/models"
+	"github.com/ButterHost69/PKr-Base/models"
 )
 
 func NotifyToPunchDial(username string, message models.NotifyToPunchRequest) error {

@@ -15,3 +15,6 @@ open-db:
 
 grpc-out:
 	protoc ./proto/*.proto --go_out=. --go-grpc_out=.
+
+upgrade-base:
+	go get "github.com/ButterHost69/PKr-Base"@latest

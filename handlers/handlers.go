@@ -6,10 +6,10 @@ import (
 	"log"
 	"time"
 
-	pb "github.com/ButterHost69/PKr-Server/pb"
+	pb "github.com/ButterHost69/PKr-Base/pb"
 
+	"github.com/ButterHost69/PKr-Base/models"
 	"github.com/ButterHost69/PKr-Server/db"
-	"github.com/ButterHost69/PKr-Server/models"
 	"github.com/ButterHost69/PKr-Server/ws"
 )
 
@@ -119,13 +119,13 @@ func (s *CliServiceServer) RequestPunchFromReceiver(ctx context.Context, req *pb
 	count := 0
 	for {
 		time.Sleep(10 * time.Second)
-		ws.NotifyToPunchResponseMap.Lock()
-		res, ok = ws.NotifyToPunchResponseMap.Map[req.WorkspaceOwnerUsername+req.ListenerUsername]
-		ws.NotifyToPunchResponseMap.Unlock()
+		ws.NotifyToPunchResponseMapObj.Lock()
+		res, ok = ws.NotifyToPunchResponseMapObj.Map[req.WorkspaceOwnerUsername+req.ListenerUsername]
+		ws.NotifyToPunchResponseMapObj.Unlock()
 		if ok {
-			ws.NotifyToPunchResponseMap.Lock()
-			delete(ws.NotifyToPunchResponseMap.Map, req.WorkspaceOwnerUsername+req.ListenerUsername)
-			ws.NotifyToPunchResponseMap.Unlock()
+			ws.NotifyToPunchResponseMapObj.Lock()
+			delete(ws.NotifyToPunchResponseMapObj.Map, req.WorkspaceOwnerUsername+req.ListenerUsername)
+			ws.NotifyToPunchResponseMapObj.Unlock()
 			break
 		}
 		if count == 6 {
