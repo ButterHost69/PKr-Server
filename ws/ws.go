@@ -9,14 +9,15 @@ import (
 	"time"
 
 	"github.com/ButterHost69/PKr-Base/models"
+	"github.com/ButterHost69/PKr-Base/ws"
 	"github.com/ButterHost69/PKr-Server/db"
 
 	"github.com/gorilla/websocket"
 )
 
 const (
-	PONG_WAIT_TIME = 5 * time.Minute
-	PING_WAIT_TIME = (PONG_WAIT_TIME * 9) / 10
+	PONG_WAIT_TIME = ws.PONG_WAIT_TIME
+	PING_WAIT_TIME = ws.PING_WAIT_TIME
 )
 
 type NotifyToPunchResponseMap struct {
