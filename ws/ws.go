@@ -204,7 +204,7 @@ func pingPongWriter(conn *websocket.Conn, username string) {
 	for {
 		<-ticker.C
 		if err := conn.WriteMessage(websocket.PingMessage, nil); err != nil {
-			log.Println("No response of Ping from", username)
+			log.Printf("Error while Writing Ping Message to '%s':%v\n", username, err)
 			return
 		}
 	}
