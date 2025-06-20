@@ -5,14 +5,13 @@ go 1.24.0
 require github.com/gorilla/websocket v1.5.3
 
 require (
-	github.com/ButterHost69/PKr-Base v0.0.0-20250616135545-d85298e1fed0
+	github.com/ButterHost69/PKr-Base v0.0.0-20250620231544-2219f935dd1f
 	github.com/mattn/go-sqlite3 v1.14.28
 	google.golang.org/grpc v1.73.0
 )
 
 require (
 	github.com/ButterHost69/kcp-go v1.0.10 // indirect
-	github.com/brianvoe/gofakeit/v7 v7.2.1 // indirect
 	github.com/ccding/go-stun v0.1.5 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.6 // indirect
 	github.com/klauspost/reedsolomon v1.12.0 // indirect

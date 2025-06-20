@@ -23,7 +23,7 @@ func createAllTables() error {
 	workspaceTableQuery := `CREATE TABLE IF NOT EXISTS workspaces (
 		username TEXT,
 		workspace_name TEXT,
-		last_hash TEXT,
+		last_push_num INTEGER,
 
 		PRIMARY KEY(username, workspace_name)
 	);`
@@ -77,12 +77,12 @@ func InsertDummyData() error {
 	}
 
 	query = `INSERT INTO workspaces (username, workspace_name, last_hash) VALUES
-				('user#123', 'WorkspaceA', 'Hash1'),
-				('user#123', 'WorkspaceB', 'Hash12'),
-				('user#456', 'WorkspaceC', 'Hash13'),
-				('user#789', 'WorkspaceD', 'Hash14'),
-				('user#101', 'WorkspaceE', 'Hash15'),
-				('user#102', 'WorkspaceF', 'Hash16');`
+				('user#123', 'WorkspaceA', 1),
+				('user#123', 'WorkspaceB', 2),
+				('user#456', 'WorkspaceC', 10),
+				('user#789', 'WorkspaceD', 12),
+				('user#101', 'WorkspaceE', 12),
+				('user#102', 'WorkspaceF', 5);`
 
 	_, err = db.Exec(query)
 	if err != nil {
@@ -182,7 +182,7 @@ func CheckIfWorkspaceExists(username, workspace_name string) (bool, error) {
 	return rows.Next(), nil
 }
 
-func RegisterNewWorkspace(username, password, workspace_name, last_hash string) error {
+func RegisterNewWorkspace(username, password, workspace_name string, last_push_num int) error {
 	ifAuth, err := AuthUser(username, password)
 	if err != nil {
 		log.Println("Error:", err)
@@ -207,8 +207,8 @@ func RegisterNewWorkspace(username, password, workspace_name, last_hash string) 
 		return fmt.Errorf("workspace already exists")
 	}
 
-	query := "INSERT INTO workspaces (username, workspace_name, last_hash) VALUES (?,?,?);"
-	if _, err = db.Exec(query, username, workspace_name, last_hash); err != nil {
+	query := "INSERT INTO workspaces (username, workspace_name, last_push_num) VALUES (?,?,?);"
+	if _, err = db.Exec(query, username, workspace_name, last_push_num); err != nil {
 		log.Println("Error:", err)
 		log.Println("Description: Could Not Insert into workspaces Table")
 		log.Println("Source: RegisterNewWorkspace()")
@@ -298,36 +298,36 @@ func GetAllWorkspaces() ([]*pb.WorkspaceInfo, error) {
 	return workspaces, nil
 }
 
-func GetLastHashOfWorkspace(workspace_name, workspace_owner_name string) (string, error) {
-	query := "SELECT last_hash FROM workspaces WHERE username=? AND workspace_name=?;"
+func GetLastPushNumOfWorkspace(workspace_name, workspace_owner_name string) (int, error) {
+	query := "SELECT last_push_num FROM workspaces WHERE username=? AND workspace_name=?;"
 
 	rows, err := db.Query(query, workspace_owner_name, workspace_name)
 	if err != nil {
-		log.Println("Error while Getting Lash Hash of Workspace:", err)
-		log.Println("Source: GetLastHashOfWorkspace()")
-		return "", err
+		log.Println("Error while Getting Last Push Num of Workspace:", err)
+		log.Println("Source: GetLastPushNumOfWorkspace()")
+		return -1, err
 	}
 	defer rows.Close()
 
-	var last_hash string
+	var last_push_num int
 	if rows.Next() {
-		if err := rows.Scan(&last_hash); err != nil {
-			log.Println("Error while Scanning Lash Hash from Results:", err)
-			log.Println("Source: GetLastHashOfWorkspace()")
-			return "", err
+		if err := rows.Scan(&last_push_num); err != nil {
+			log.Println("Error while Scanning Last Push Num from Results:", err)
+			log.Println("Source: GetLastPushNumOfWorkspace()")
+			return -1, err
 		}
 	}
 
-	return last_hash, nil
+	return last_push_num, nil
 }
 
-func UpdateLastHashOfWorkpace(workspace_name, workspace_owner_name, new_workspace_hash string) error {
-	query := "UPDATE workspaces SET last_hash=? WHERE username=? AND workspace_name=?;"
+func UpdateLastPushNumOfWorkpace(workspace_name, workspace_owner_name string, last_push_num int) error {
+	query := "UPDATE workspaces SET last_push_num=? WHERE username=? AND workspace_name=?;"
 
-	_, err := db.Exec(query, new_workspace_hash, workspace_owner_name, workspace_name)
+	_, err := db.Exec(query, last_push_num, workspace_owner_name, workspace_name)
 	if err != nil {
-		log.Println("Error while Updating Last Hash of Workspace:", err)
-		log.Println("Source: UpdateLastHashOfWorkpace()")
+		log.Println("Error while Updating Last Push Num of Workspace:", err)
+		log.Println("Source: UpdateLastPushNumOfWorkpace()")
 		return err
 	}
 	return nil

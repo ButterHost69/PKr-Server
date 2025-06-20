@@ -54,7 +54,7 @@ func (s *CliServiceServer) RegisterWorkspace(ctx context.Context, req *pb.Regist
 		return nil, fmt.Errorf("incorrect user credentials")
 	}
 
-	err = db.RegisterNewWorkspace(req.Username, req.Password, req.WorkspaceName, req.LastHash)
+	err = db.RegisterNewWorkspace(req.Username, req.Password, req.WorkspaceName, int(req.LastPushNum))
 	if err == nil {
 		return &pb.RegisterWorkspaceResponse{}, nil
 	}
@@ -96,9 +96,11 @@ func (s *CliServiceServer) RequestPunchFromReceiver(ctx context.Context, req *pb
 	}
 
 	base_request := models.NotifyToPunchRequest{
-		ListenerUsername:   req.ListenerUsername,
-		ListenerPublicIP:   req.ListenerPublicIp,
-		ListenerPublicPort: req.ListenerPublicPort,
+		ListenerUsername:      req.ListenerUsername,
+		ListenerPublicIP:      req.ListenerPublicIp,
+		ListenerPublicPort:    req.ListenerPublicPort,
+		ListenerPrivateIPList: req.ListenerPrivateIpList,
+		ListenerPrivatePort:   req.ListenerPrivatePort,
 	}
 
 	err = ws.NotifyToPunchDial(req.WorkspaceOwnerUsername, base_request)
@@ -141,8 +143,10 @@ func (s *CliServiceServer) RequestPunchFromReceiver(ctx context.Context, req *pb
 	}
 
 	return &pb.RequestPunchFromReceiverResponse{
-		WorkspaceOwnerPublicIp:   res.WorkspaceOwnerPublicIP,
-		WorkspaceOwnerPublicPort: res.WorkspaceOwnerPublicPort,
+		WorkspaceOwnerPublicIp:      res.WorkspaceOwnerPublicIP,
+		WorkspaceOwnerPublicPort:    res.WorkspaceOwnerPublicPort,
+		WorkspaceOwnerPrivateIpList: res.WorkspaceOwnerPrivateIPList,
+		WorkspaceOwnerPrivatePort:   res.WorkspaceOwnerPrivatePort,
 	}, nil
 }
 
@@ -231,7 +235,7 @@ func (s *CliServiceServer) NotifyNewPushToListeners(ctx context.Context, req *pb
 		return nil, fmt.Errorf("workspace doesn't exists")
 	}
 
-	err = db.UpdateLastHashOfWorkpace(req.WorkspaceName, req.WorkspaceOwnerUsername, req.NewWorkspaceHash)
+	err = db.UpdateLastPushNumOfWorkpace(req.WorkspaceName, req.WorkspaceOwnerUsername, int(req.NewWorkspacePushNum))
 	if err != nil {
 		log.Println("Error:", err)
 		log.Println("Description: Could Not Update Last Hash of Workspace")
@@ -255,7 +259,7 @@ func (s *CliServiceServer) NotifyNewPushToListeners(ctx context.Context, req *pb
 			msg := models.NotifyNewPushToListeners{
 				WorkspaceOwnerUsername: req.WorkspaceOwnerUsername,
 				WorkspaceName:          req.WorkspaceName,
-				NewWorkspaceHash:       req.NewWorkspaceHash,
+				NewWorkspacePushNum:    int(req.NewWorkspacePushNum),
 			}
 
 			err = ws.NotifyNewPushToListenersDial(listener, msg)
@@ -298,7 +302,7 @@ func (s *CliServiceServer) GetAllWorkspaces(ctx context.Context, req *pb.GetAllW
 	return &pb.GetAllWorkspacesResponse{Workspaces: workspaces}, nil
 }
 
-func (s *CliServiceServer) GetLastHashOfWorkspace(ctx context.Context, req *pb.GetLastHashOfWorkspaceRequest) (*pb.GetLastHashOfWorkspaceResponse, error) {
+func (s *CliServiceServer) GetLastPushNumOfWorkspace(ctx context.Context, req *pb.GetLastPushNumOfWorkspaceRequest) (*pb.GetLastPushNumOfWorkspaceResponse, error) {
 	is_user_authenticated, err := db.AuthUser(req.ListenerUsername, req.ListenerPassword)
 	if err != nil {
 		log.Println("Error:", err)
@@ -322,12 +326,12 @@ func (s *CliServiceServer) GetLastHashOfWorkspace(ctx context.Context, req *pb.G
 		return nil, fmt.Errorf("workspace connection doesn't exists")
 	}
 
-	last_hash, err := db.GetLastHashOfWorkspace(req.WorkspaceName, req.WorkspaceOwner)
+	last_push_num, err := db.GetLastPushNumOfWorkspace(req.WorkspaceName, req.WorkspaceOwner)
 	if err != nil {
 		log.Println("Error while getting last hash of workspace:", err)
 		log.Println("Source: GetLastHashOfWorkspace()")
 		return nil, fmt.Errorf("internal server error")
 	}
 
-	return &pb.GetLastHashOfWorkspaceResponse{LastHash: last_hash}, nil
+	return &pb.GetLastPushNumOfWorkspaceResponse{LastPushNum: int32(last_push_num)}, nil
 }
