@@ -1,11 +1,7 @@
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
-github.com/ButterHost69/PKr-Base v0.0.0-20250620150446-b98c5d6e3196 h1:GfcEYvtN/Kb7nm1PAEhj+orWJ+6W50ORvFRHCTDyxFg=
-github.com/ButterHost69/PKr-Base v0.0.0-20250620150446-b98c5d6e3196/go.mod h1:XPhX1fALegvyNf4E8W+FSSYxa+E8X6rLA27rX1B9Yoo=
-github.com/ButterHost69/PKr-Base v0.0.0-20250620231244-6dc174ce7730 h1:6jdw2GY7/0bFToWkE08ZhV5DinixiFLC8p9WAONf79w=
-github.com/ButterHost69/PKr-Base v0.0.0-20250620231244-6dc174ce7730/go.mod h1:XPhX1fALegvyNf4E8W+FSSYxa+E8X6rLA27rX1B9Yoo=
-github.com/ButterHost69/PKr-Base v0.0.0-20250620231544-2219f935dd1f h1:JBB7/pbUFL0t5JhgvSGgTWmgrQSEJwnN25AkibRrV9I=
-github.com/ButterHost69/PKr-Base v0.0.0-20250620231544-2219f935dd1f/go.mod h1:XPhX1fALegvyNf4E8W+FSSYxa+E8X6rLA27rX1B9Yoo=
+github.com/ButterHost69/PKr-Base v0.0.0-20250621114413-6139a110d4da h1:hNfXCSlsYm3aB8+/3MCpLwUcmlB2Vr5htSVjEeuqgpQ=
+github.com/ButterHost69/PKr-Base v0.0.0-20250621114413-6139a110d4da/go.mod h1:XPhX1fALegvyNf4E8W+FSSYxa+E8X6rLA27rX1B9Yoo=
 github.com/ButterHost69/kcp-go v1.0.10 h1:LXrttjFl8Hrmp9ebUBEDsIvIIhwNeSZyPUJ7Te0pz4o=
 github.com/ButterHost69/kcp-go v1.0.10/go.mod h1:/ECsUnFLsAZkfWFp0xFgJZUHKy8zNA9aBjam3q60uJI=
 github.com/ccding/go-stun v0.1.5 h1:qEM367nnezmj7dv+SdT52prv5x6HUTG3nlrjX5aitlo=

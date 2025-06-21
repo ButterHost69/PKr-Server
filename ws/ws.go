@@ -87,12 +87,14 @@ func handleRequestPunchFromReceiverRequest(msg models.WSMessage, conn *websocket
 		}
 		return
 	}
-	// Workspace Owner is Online
 
+	// Workspace Owner is Online
 	var noti_to_punch_req models.NotifyToPunchRequest
 	noti_to_punch_req.ListenerUsername = msg_obj.ListenerUsername
 	noti_to_punch_req.ListenerPublicIP = msg_obj.ListenerPublicIP
 	noti_to_punch_req.ListenerPublicPort = msg_obj.ListenerPublicPort
+	noti_to_punch_req.ListenerPrivateIPList = msg_obj.ListenerPrivateIPList
+	noti_to_punch_req.ListenerPrivatePort = msg_obj.ListenerPrivatePort
 
 	err = workspace_owner_conn.WriteJSON(models.WSMessage{
 		MessageType: "NotifyToPunchRequest",
@@ -106,6 +108,7 @@ func handleRequestPunchFromReceiverRequest(msg models.WSMessage, conn *websocket
 	}
 
 	fmt.Println("HELLO", msg_obj.WorkspaceOwnerUsername+msg_obj.ListenerUsername)
+	fmt.Println(noti_to_punch_req)
 
 	// TODO: Add Proper Timeout
 	var noti_to_punch_res models.NotifyToPunchResponse
@@ -137,7 +140,10 @@ func handleRequestPunchFromReceiverRequest(msg models.WSMessage, conn *websocket
 		req_punch_from_receiver_response.WorkspaceOwnerPublicIP = noti_to_punch_res.WorkspaceOwnerPublicIP
 		req_punch_from_receiver_response.WorkspaceOwnerPublicPort = noti_to_punch_res.WorkspaceOwnerPublicPort
 		req_punch_from_receiver_response.WorkspaceOwnerUsername = msg_obj.WorkspaceOwnerUsername
+		req_punch_from_receiver_response.WorkspaceOwnerPrivateIPList = noti_to_punch_res.WorkspaceOwnerPrivateIPList
+		req_punch_from_receiver_response.WorkspaceOwnerPrivatePort = noti_to_punch_res.WorkspaceOwnerPrivatePort
 	}
+	fmt.Println(req_punch_from_receiver_response)
 
 	err = conn.WriteJSON(models.WSMessage{
 		MessageType: "RequestPunchFromReceiverResponse",
@@ -186,13 +192,14 @@ func readJSONMessage(conn *websocket.Conn, username string) {
 		log.Printf("Message: %#v\n", msg)
 		log.Println("Message Type:", msg.MessageType)
 
-		if msg.MessageType == "NotifyToPunchResponse" {
+		switch msg.MessageType {
+		case "NotifyToPunchResponse":
 			log.Println("NotifyToPunchResponse Called")
 			handleNotifyToPunchResponse(msg, username)
-		} else if msg.MessageType == "RequestPunchFromReceiverRequest" {
+		case "RequestPunchFromReceiverRequest":
 			log.Println("RequestPunchFromReceiverRequest Called from WS")
 			handleRequestPunchFromReceiverRequest(msg, conn)
-		} else {
+		default:
 			log.Println("Unexpected Message Type:", msg.MessageType)
 			log.Println(msg.Message)
 		}
