@@ -25,7 +25,14 @@ type NotifyToPunchResponseMap struct {
 	Map map[string]models.NotifyToPunchResponse
 }
 
+type UsersWaiting struct {
+	sync.RWMutex
+	Map map[string][]string
+}
+
 var NotifyToPunchResponseMapObj = NotifyToPunchResponseMap{Map: map[string]models.NotifyToPunchResponse{}}
+
+var UsersWaitingObj = UsersWaiting{Map: map[string][]string{}}
 
 var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool {
@@ -73,7 +80,12 @@ func handleRequestPunchFromReceiverRequest(msg models.WSMessage, conn *websocket
 	connManager.Unlock()
 	if !ok {
 		// Workspace Owner is Offline
-		req_punch_from_receiver_response.Error = "Workspace Owner is Offline"
+		UsersWaitingObj.Lock()
+		UsersWaitingObj.Map[msg_obj.WorkspaceOwnerUsername] = append(UsersWaitingObj.Map[msg_obj.WorkspaceOwnerUsername], msg_obj.ListenerUsername)
+		UsersWaitingObj.Unlock()
+
+		req_punch_from_receiver_response.WorkspaceOwnerUsername = msg_obj.WorkspaceOwnerUsername
+		req_punch_from_receiver_response.Error = "workspace owner is offline"
 
 		err = conn.WriteJSON(models.WSMessage{
 			MessageType: "RequestPunchFromReceiverResponse",
@@ -135,7 +147,7 @@ func handleRequestPunchFromReceiverRequest(msg models.WSMessage, conn *websocket
 
 	if invalid_flag {
 		log.Println("Error: Workspace Owner isn't Responding\nSource: handleRequestPunchFromReceiverRequest()")
-		req_punch_from_receiver_response.Error = "Workspace Owner isn't Responding"
+		req_punch_from_receiver_response.Error = "workspace owner isn't responding"
 	} else {
 		req_punch_from_receiver_response.WorkspaceOwnerPublicIP = noti_to_punch_res.WorkspaceOwnerPublicIP
 		req_punch_from_receiver_response.WorkspaceOwnerPublicPort = noti_to_punch_res.WorkspaceOwnerPublicPort
@@ -247,6 +259,36 @@ func ServerWS(w http.ResponseWriter, r *http.Request) {
 	}
 
 	addUserToConnPool(conn, username)
+
+	// Notify Users, who were waiting
+	UsersWaitingObj.Lock()
+	users_waiting_list, ok := UsersWaitingObj.Map[username]
+	UsersWaitingObj.Unlock()
+	if ok {
+		msg := models.WSMessage{
+			MessageType: "WorkspaceOwnerIsOnline",
+			Message: models.WorkspaceOwnerIsOnline{
+				WorkspaceOwnerName: username,
+			},
+		}
+		for _, listener_username := range users_waiting_list {
+			connManager.Lock()
+			listener_conn, ok := connManager.ConnPool[listener_username]
+			connManager.Unlock()
+			if ok {
+				err = listener_conn.WriteJSON(msg)
+				if err != nil {
+					log.Println("Error while sending Workspace Owner is Online Msg:", err)
+					log.Println("Source: ServeWS()")
+					removeUserFromConnPool(listener_conn, listener_username)
+				}
+			}
+		}
+		UsersWaitingObj.Lock()
+		delete(UsersWaitingObj.Map, username)
+		UsersWaitingObj.Unlock()
+	}
+
 	go readJSONMessage(conn, username)
 	go pingPongWriter(conn, username)
 }
