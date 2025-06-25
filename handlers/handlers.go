@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"regexp"
 	"time"
 
 	pb "github.com/ButterHost69/PKr-Base/pb"
@@ -24,6 +25,17 @@ func (s *CliServiceServer) Register(ctx context.Context, req *pb.RegisterRequest
 		log.Println("Description: Could Not Check whether a Username was already used or not")
 		log.Println("Source: Register()")
 		return nil, fmt.Errorf("internal server error")
+	}
+
+	match, err := regexp.MatchString(`^[a-zA-Z0-9]+$`, req.Username)
+	if err != nil {
+		log.Println("Error:", err)
+		log.Println("Description: Could Not Check whether a Username Matches Regex or not")
+		log.Println("Source: Register()")
+		return nil, fmt.Errorf("internal server error")
+	}
+	if !match {
+		return nil, fmt.Errorf("username must be alphanumeric")
 	}
 
 	if is_username_already_used {
