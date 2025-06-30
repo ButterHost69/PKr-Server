@@ -5,7 +5,7 @@ go 1.24.0
 require github.com/gorilla/websocket v1.5.3
 
 require (
-	github.com/ButterHost69/PKr-Base v0.0.0-20250625173606-e89d75711e16
+	github.com/ButterHost69/PKr-Base v0.0.0-20250630142703-05389e55ca23
 	github.com/mattn/go-sqlite3 v1.14.28
 	google.golang.org/grpc v1.73.0
 )

@@ -108,11 +108,11 @@ func (s *CliServiceServer) RequestPunchFromReceiver(ctx context.Context, req *pb
 	}
 
 	base_request := models.NotifyToPunchRequest{
-		ListenerUsername:      req.ListenerUsername,
-		ListenerPublicIP:      req.ListenerPublicIp,
-		ListenerPublicPort:    req.ListenerPublicPort,
-		ListenerPrivateIPList: req.ListenerPrivateIpList,
-		ListenerPrivatePort:   req.ListenerPrivatePort,
+		ListenerUsername:    req.ListenerUsername,
+		ListenerPublicIp:    req.ListenerPublicIp,
+		ListenerPublicPort:  req.ListenerPublicPort,
+		ListenerPrivateIp:   req.ListenerPrivateIp,
+		ListenerPrivatePort: req.ListenerPrivatePort,
 	}
 
 	err = ws.NotifyToPunchDial(req.WorkspaceOwnerUsername, base_request)
@@ -155,10 +155,10 @@ func (s *CliServiceServer) RequestPunchFromReceiver(ctx context.Context, req *pb
 	}
 
 	return &pb.RequestPunchFromReceiverResponse{
-		WorkspaceOwnerPublicIp:      res.WorkspaceOwnerPublicIP,
-		WorkspaceOwnerPublicPort:    res.WorkspaceOwnerPublicPort,
-		WorkspaceOwnerPrivateIpList: res.WorkspaceOwnerPrivateIPList,
-		WorkspaceOwnerPrivatePort:   res.WorkspaceOwnerPrivatePort,
+		WorkspaceOwnerPublicIp:    res.WorkspaceOwnerPublicIp,
+		WorkspaceOwnerPublicPort:  res.WorkspaceOwnerPublicPort,
+		WorkspaceOwnerPrivateIp:   res.WorkspaceOwnerPrivateIp,
+		WorkspaceOwnerPrivatePort: res.WorkspaceOwnerPrivatePort,
 	}, nil
 }
 

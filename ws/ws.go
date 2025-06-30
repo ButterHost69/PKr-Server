@@ -103,9 +103,9 @@ func handleRequestPunchFromReceiverRequest(msg models.WSMessage, conn *websocket
 	// Workspace Owner is Online
 	var noti_to_punch_req models.NotifyToPunchRequest
 	noti_to_punch_req.ListenerUsername = msg_obj.ListenerUsername
-	noti_to_punch_req.ListenerPublicIP = msg_obj.ListenerPublicIP
+	noti_to_punch_req.ListenerPublicIp = msg_obj.ListenerPublicIp
 	noti_to_punch_req.ListenerPublicPort = msg_obj.ListenerPublicPort
-	noti_to_punch_req.ListenerPrivateIPList = msg_obj.ListenerPrivateIPList
+	noti_to_punch_req.ListenerPrivateIp = msg_obj.ListenerPrivateIp
 	noti_to_punch_req.ListenerPrivatePort = msg_obj.ListenerPrivatePort
 
 	err = workspace_owner_conn.WriteJSON(models.WSMessage{
@@ -149,10 +149,10 @@ func handleRequestPunchFromReceiverRequest(msg models.WSMessage, conn *websocket
 		log.Println("Error: Workspace Owner isn't Responding\nSource: handleRequestPunchFromReceiverRequest()")
 		req_punch_from_receiver_response.Error = "workspace owner isn't responding"
 	} else {
-		req_punch_from_receiver_response.WorkspaceOwnerPublicIP = noti_to_punch_res.WorkspaceOwnerPublicIP
+		req_punch_from_receiver_response.WorkspaceOwnerPublicIp = noti_to_punch_res.WorkspaceOwnerPublicIp
 		req_punch_from_receiver_response.WorkspaceOwnerPublicPort = noti_to_punch_res.WorkspaceOwnerPublicPort
 		req_punch_from_receiver_response.WorkspaceOwnerUsername = msg_obj.WorkspaceOwnerUsername
-		req_punch_from_receiver_response.WorkspaceOwnerPrivateIPList = noti_to_punch_res.WorkspaceOwnerPrivateIPList
+		req_punch_from_receiver_response.WorkspaceOwnerPrivateIp = noti_to_punch_res.WorkspaceOwnerPrivateIp
 		req_punch_from_receiver_response.WorkspaceOwnerPrivatePort = noti_to_punch_res.WorkspaceOwnerPrivatePort
 	}
 	fmt.Println(req_punch_from_receiver_response)

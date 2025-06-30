@@ -2,8 +2,8 @@ cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMT
 git.sr.ht/~jackmordaunt/go-toast v1.1.2 h1:/yrfI55LRt1M7H1vkaw+NaH1+L1CDxrqDltwm5euVuE=
 git.sr.ht/~jackmordaunt/go-toast v1.1.2/go.mod h1:jA4OqHKTQ4AFBdwrSnwnskUIIS3HYzlJSgdzCKqfavo=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
-github.com/ButterHost69/PKr-Base v0.0.0-20250625173606-e89d75711e16 h1:4lsOKheUJfbfBS6fC+EHh8FosQDcUU3yLFaiBJ6Bm9U=
-github.com/ButterHost69/PKr-Base v0.0.0-20250625173606-e89d75711e16/go.mod h1:XSFyNQ7us4xPN8bC7VZanAW5TD3RhoAAuzIhxUzgrhk=
+github.com/ButterHost69/PKr-Base v0.0.0-20250630142703-05389e55ca23 h1:Wzf2s98yUXspfAbSw8nkrhFj16l0l6YBRmAFgC1Uzjg=
+github.com/ButterHost69/PKr-Base v0.0.0-20250630142703-05389e55ca23/go.mod h1:XSFyNQ7us4xPN8bC7VZanAW5TD3RhoAAuzIhxUzgrhk=
 github.com/ButterHost69/kcp-go v1.0.10 h1:LXrttjFl8Hrmp9ebUBEDsIvIIhwNeSZyPUJ7Te0pz4o=
 github.com/ButterHost69/kcp-go v1.0.10/go.mod h1:/ECsUnFLsAZkfWFp0xFgJZUHKy8zNA9aBjam3q60uJI=
 github.com/ccding/go-stun v0.1.5 h1:qEM367nnezmj7dv+SdT52prv5x6HUTG3nlrjX5aitlo=
