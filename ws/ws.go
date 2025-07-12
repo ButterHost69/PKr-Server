@@ -260,34 +260,37 @@ func ServerWS(w http.ResponseWriter, r *http.Request) {
 
 	addUserToConnPool(conn, username)
 
-	// Notify Users, who were waiting
-	UsersWaitingObj.Lock()
-	users_waiting_list, ok := UsersWaitingObj.Map[username]
-	UsersWaitingObj.Unlock()
-	if ok {
-		msg := models.WSMessage{
-			MessageType: "WorkspaceOwnerIsOnline",
-			Message: models.WorkspaceOwnerIsOnline{
-				WorkspaceOwnerName: username,
-			},
-		}
-		for _, listener_username := range users_waiting_list {
-			connManager.Lock()
-			listener_conn, ok := connManager.ConnPool[listener_username]
-			connManager.Unlock()
-			if ok {
-				err = listener_conn.WriteJSON(msg)
-				if err != nil {
-					log.Println("Error while sending Workspace Owner is Online Msg:", err)
-					log.Println("Source: ServeWS()")
-					removeUserFromConnPool(listener_conn, listener_username)
-				}
-			}
-		}
+	go func() {
+		// Notify Users, who were waiting
 		UsersWaitingObj.Lock()
-		delete(UsersWaitingObj.Map, username)
+		users_waiting_list, ok := UsersWaitingObj.Map[username]
 		UsersWaitingObj.Unlock()
-	}
+		if ok {
+			msg := models.WSMessage{
+				MessageType: "WorkspaceOwnerIsOnline",
+				Message: models.WorkspaceOwnerIsOnline{
+					WorkspaceOwnerName: username,
+				},
+			}
+			for _, listener_username := range users_waiting_list {
+				connManager.Lock()
+				listener_conn, ok := connManager.ConnPool[listener_username]
+				connManager.Unlock()
+				if ok {
+					err = listener_conn.WriteJSON(msg)
+					if err != nil {
+						log.Println("Error while sending Workspace Owner is Online Msg:", err)
+						log.Println("Source: ServeWS()")
+						removeUserFromConnPool(listener_conn, listener_username)
+					}
+				}
+				time.Sleep(10 * time.Second) // Avoids Sudden Spam when Workspace Owner is Online
+			}
+			UsersWaitingObj.Lock()
+			delete(UsersWaitingObj.Map, username)
+			UsersWaitingObj.Unlock()
+		}
+	}()
 
 	go readJSONMessage(conn, username)
 	go pingPongWriter(conn, username)
