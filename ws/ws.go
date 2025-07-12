@@ -283,8 +283,8 @@ func ServerWS(w http.ResponseWriter, r *http.Request) {
 						log.Println("Source: ServeWS()")
 						removeUserFromConnPool(listener_conn, listener_username)
 					}
+					time.Sleep(10 * time.Second) // Avoids Sudden Spam when Workspace Owner is Online
 				}
-				time.Sleep(10 * time.Second) // Avoids Sudden Spam when Workspace Owner is Online
 			}
 			UsersWaitingObj.Lock()
 			delete(UsersWaitingObj.Map, username)
