@@ -4,6 +4,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"os"
 
 	"github.com/ButterHost69/PKr-Base/pb"
 	"github.com/ButterHost69/PKr-Server/db"
@@ -28,6 +29,15 @@ func init() {
 }
 
 func main() {
+	file, err := os.OpenFile("PKr-Server.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	if err != nil {
+		log.Fatalf("Failed to open log file: %s", err)
+	}
+	defer file.Close()
+
+	// Set output of logs to file
+	log.SetOutput(file)
+
 	go func() {
 		lis, err := net.Listen("tcp", gRPC_SERVER_ADDR)
 		if err != nil {
@@ -50,7 +60,7 @@ func main() {
 
 	log.Printf("WebSocket Server Stared on %s\n", WEBSOCKET_SERVER_ADDR)
 	http.HandleFunc("/ws", ws.ServerWS)
-	err := http.ListenAndServe(WEBSOCKET_SERVER_ADDR, nil)
+	err = http.ListenAndServe(WEBSOCKET_SERVER_ADDR, nil)
 	if err != nil {
 		log.Println("Error:", err)
 		log.Printf("Description: Cannot ListenAndServer on %s\n", WEBSOCKET_SERVER_ADDR)
