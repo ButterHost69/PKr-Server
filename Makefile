@@ -23,6 +23,9 @@ UR:
 	rm -f server_database.db
 	export PATH=$$PATH:/usr/local/go/bin && go run .
 
+UK:
+	@echo Stopping PKr-Server
+	pkill PKr-Server
 
 open-db:
 	@sqlite3 server_database.db
