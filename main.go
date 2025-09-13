@@ -18,12 +18,11 @@ import (
 const (
 	WEBSOCKET_SERVER_ADDR = "0.0.0.0:8080"
 	gRPC_SERVER_ADDR      = "0.0.0.0:8081"
-	TESTMODE              = false
 	DATABASE_PATH         = "./server_database.db"
 )
 
 func init() {
-	if _, err := db.InitSQLiteDatabase(TESTMODE, DATABASE_PATH); err != nil {
+	if err := db.InitSQLiteDatabase(DATABASE_PATH); err != nil {
 		log.Fatal("Error: Could Not Start the Database\nError:", err)
 	}
 }

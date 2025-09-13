@@ -29,26 +29,21 @@ type workspaceConnection struct {
 	workspace_listener_username string
 }
 
+// ---------- Helper Methods ----------
 func setupTestDB(t *testing.T) {
 	t.Helper()
 
 	var err error
 	// Setup In-Memory SQLite DB
 	db, err = sql.Open("sqlite3", ":memory:?_foreign_keys=on")
-	if err != nil {
-		t.Fatalf("Failed to Open In-Memory DB: %v", err)
-	}
+	require.NoError(t, err)
 
 	err = createAllTables()
-	if err != nil {
-		db.Close()
-		t.Fatalf("Error from createAllTables(): %v", err)
-	}
+	require.NoError(t, err)
 
 	t.Cleanup(func() {
-		if err := db.Close(); err != nil {
-			t.Fatalf("Error while Closing DB Conn: %v", err)
-		}
+		err := db.Close()
+		require.NoError(t, err)
 	})
 }
 
@@ -56,16 +51,14 @@ func seedUsers(t *testing.T) []user {
 	t.Helper()
 
 	seeded_users := []user{
-		{"User#123", "User123"},
-		{"User#234", "User234"},
-		{"User#345", "User345"},
+		{"User123", "User123"},
+		{"User234", "User234"},
+		{"User345", "User345"},
 	}
 
 	for _, user := range seeded_users {
 		err := RegisterNewUser(user.username, user.password)
-		if err != nil {
-			t.Fatalf("Error while setupCreateUsers() from RegisterNewUser(): %v", err)
-		}
+		require.NoError(t, err)
 	}
 	return seeded_users
 }
@@ -74,16 +67,14 @@ func seedWorkspaces(t *testing.T) []workspace {
 	t.Helper()
 
 	seeded_workspaces := []workspace{
-		{"User#123", "User123", "Workspace1"},
-		{"User#234", "User234", "Workspace2"},
-		{"User#345", "User345", "Workspace3"},
+		{"User123", "User123", "Workspace1"},
+		{"User234", "User234", "Workspace2"},
+		{"User345", "User345", "Workspace3"},
 	}
 
 	for _, workspace := range seeded_workspaces {
 		err := RegisterNewWorkspace(workspace.username, workspace.password, workspace.workspace_name)
-		if err != nil {
-			t.Fatalf("Error while setupCreateWorkspaces() from RegisterNewWorkspace(): %v", err)
-		}
+		require.NoError(t, err)
 	}
 	return seeded_workspaces
 }
@@ -92,18 +83,16 @@ func seedWorkspaceConnections(t *testing.T) []workspaceConnection {
 	t.Helper()
 
 	seeded_workspace_connection := []workspaceConnection{
-		{"Workspace1", "User#123", "User#234"},
-		{"Workspace1", "User#123", "User#345"},
-		{"Workspace2", "User#234", "User#123"},
-		{"Workspace2", "User#234", "User#345"},
-		{"Workspace3", "User#345", "User#234"},
+		{"Workspace1", "User123", "User234"},
+		{"Workspace1", "User123", "User345"},
+		{"Workspace2", "User234", "User123"},
+		{"Workspace2", "User234", "User345"},
+		{"Workspace3", "User345", "User234"},
 	}
 
 	for _, workspace_connection := range seeded_workspace_connection {
 		err := RegisterNewUserToWorkspace(workspace_connection.workspace_name, workspace_connection.workspace_owner_username, workspace_connection.workspace_listener_username)
-		if err != nil {
-			t.Fatalf("Error while setupCreateWorkspaces() from RegisterNewWorkspace(): %v", err)
-		}
+		require.NoError(t, err)
 	}
 	return seeded_workspace_connection
 }
@@ -119,17 +108,17 @@ func TestRegisterNewUser(t *testing.T) {
 		want_err     bool
 		err_contains string
 	}{
-		{"Valid Testcase 1", "User#123", "User#123", false, ""},
-		{"Valid Testcase 2", "User#234", "User#123", false, ""},
-		{"Duplicate User 1", "User#123", "User", true, "unique constraint"},
-		{"Valid Testcase 3", "User#345", "User#123", false, ""},
-		{"Duplicate User 2", "User#234", "User", true, "unique constraint"},
-		{"Valid Testcase 4", "User#456", "User#123", false, ""},
+		{"Valid Testcase 1", "User123", "User123", false, ""},
+		{"Valid Testcase 2", "User234", "User123", false, ""},
+		{"Valid Testcase 3", "User345", "User123", false, ""},
+		{"Valid Testcase 4", "User456", "User123", false, ""},
+		{"Duplicate User 1", "User123", "User", true, "unique constraint"},
+		{"Duplicate User 2", "User234", "User", true, "unique constraint"},
 	}
 
 	for _, tc := range testcases {
 		t.Run(tc.test_name, func(t *testing.T) {
-			// No need to log errors from funcs during tests when I expect errors
+			// No need to log errors from funcs during tests when we expect errors
 			if tc.want_err {
 				log.SetOutput(io.Discard)
 				defer log.SetOutput(os.Stderr)
@@ -156,11 +145,11 @@ func TestAuthUser(t *testing.T) {
 		password                     string
 		should_user_be_authenticated bool
 	}{
-		{"Valid Testcase 1", "User#123", "User123", true},
-		{"Incorrect Pass 1", "User#123", "User123 ", false},
-		{"Valid Testcase 2", "User#234", "User234", true},
-		{"Incorrect Pass 2", "User#234", "user234", false},
-		{"User Doesn't Exists", "User#2341", "user234", false},
+		{"Valid Testcase 1", "User123", "User123", true},
+		{"Valid Testcase 2", "User234", "User234", true},
+		{"Incorrect Pass 1", "User123", "User123 ", false},
+		{"Incorrect Pass 2", "User234", "user234", false},
+		{"User Doesn't Exists", "User2341", "user234", false},
 	}
 
 	for _, tc := range testcases {
@@ -181,12 +170,12 @@ func TestCheckIfUsernameIsAlreadyTaken(t *testing.T) {
 		username                  string
 		is_username_already_taken bool
 	}{
-		{"Username Already Used 1", "User#123", true},
-		{"Username Not Used 1", "User123", false},
-		{"Username Already Used 2", "User#234", true},
-		{"Username Not Used 2", "user#234", false},
-		{"Username Already Used 3", "User#345", true},
-		{"Username Not Used 3", "user#234 ", false},
+		{"Username Already Used 1", "User123", true},
+		{"Username Already Used 2", "User234", true},
+		{"Username Already Used 3", "User345", true},
+		{"Username Not Used 1", "User123 ", false},
+		{"Username Not Used 2", "user234", false},
+		{"Username Not Used 3", "user234 ", false},
 	}
 
 	for _, tc := range testcases {
@@ -211,18 +200,18 @@ func TestRegisterNewWorkspace(t *testing.T) {
 		want_err       bool
 		err_contains   string
 	}{
-		{"Valid Testcase 1", "User#234", "User234", "My Workspace 1", false, ""},
-		{"Valid Testcase 2", "User#345", "User345", "My Workspace 2", false, ""},
-		{"Valid Testcase 3", "User#234", "User234", "My Workspace 2", false, ""},
-		{"Duplicate Workspace 1", "User#234", "User234", "My Workspace 1", true, "workspace already exists"},
-		{"Incorrect Password 1", "User#123", "User123 ", "My Workspace 4", true, "incorrect user credentials"},
-		{"Duplicate Workspace 2", "User#234", "User234", "My Workspace 2", true, "workspace already exists"},
-		{"Incorrect Password 2", "User#345", "user345", "My Workspace 5", true, "incorrect user credentials"},
+		{"Valid Testcase 1", "User234", "User234", "My Workspace 1", false, ""},
+		{"Valid Testcase 2", "User345", "User345", "My Workspace 2", false, ""},
+		{"Valid Testcase 3", "User234", "User234", "My Workspace 2", false, ""},
+		{"Duplicate Workspace 1", "User234", "User234", "My Workspace 1", true, "workspace already exists"},
+		{"Duplicate Workspace 2", "User234", "User234", "My Workspace 2", true, "workspace already exists"},
+		{"Incorrect Password 1", "User123", "User123 ", "My Workspace 4", true, "incorrect user credentials"},
+		{"Incorrect Password 2", "User345", "user345", "My Workspace 5", true, "incorrect user credentials"},
 	}
 
 	for _, tc := range testcases {
 		t.Run(tc.test_name, func(t *testing.T) {
-			// No need to log errors from funcs during tests when I expect errors
+			// No need to log errors from funcs during tests when we expect errors
 			if tc.want_err {
 				log.SetOutput(io.Discard)
 				defer log.SetOutput(os.Stderr)
@@ -250,12 +239,12 @@ func TestCheckIfWorkspaceExists(t *testing.T) {
 		workspace_name            string
 		is_username_already_taken bool
 	}{
-		{"Valid Testcase 1", "User#123", "Workspace1", true},
-		{"Workspace Doesn't Exists 1", "User#123", "Workspace2", false},
-		{"Valid Testcase 2", "User#234", "Workspace2", true},
-		{"Workspace Doesn't Exists 2", "User#345", "Workspace2", false},
-		{"Valid Testcase 3", "User#345", "Workspace3", true},
-		{"Workspace Doesn't Exists 3", "User#345", "Workspace1", false},
+		{"Valid Testcase 1", "User123", "Workspace1", true},
+		{"Valid Testcase 2", "User234", "Workspace2", true},
+		{"Valid Testcase 3", "User345", "Workspace3", true},
+		{"Workspace Doesn't Exists 1", "User123", "Workspace2", false},
+		{"Workspace Doesn't Exists 2", "User345", "Workspace2", false},
+		{"Workspace Doesn't Exists 3", "User345", "Workspace1", false},
 	}
 
 	for _, tc := range testcases {
@@ -319,11 +308,11 @@ func TestGetLastPushNumOfWorkspace(t *testing.T) {
 		workspace_name       string
 		workspace_owner_name string
 	}{
-		{"Valid Testcase 1", "Workspace1", "User#123"},
-		{"Valid Testcase 2", "Workspace1", "User#123"},
-		{"Valid Testcase 3", "Workspace2", "User#234"},
-		{"Workspace Doesn't Exists", "Workspace4", "User#234"},
-		{"Workspace Doesn't Exists", "Workspace4", "User#234"},
+		{"Valid Testcase 1", "Workspace1", "User123"},
+		{"Valid Testcase 2", "Workspace1", "User123"},
+		{"Valid Testcase 3", "Workspace2", "User234"},
+		{"Workspace Doesn't Exists", "Workspace4", "User234"},
+		{"Workspace Doesn't Exists", "Workspace4", "User234"},
 	}
 
 	// README: For Cases where Workspaces Doesn't Exists, it doesn't throw error & returns 0
@@ -350,18 +339,18 @@ func TestRegisterNewUserToWorkspace(t *testing.T) {
 		want_err                    bool
 		err_contains                string
 	}{
-		{"Valid Testcase 1", "User#123", "Workspace1", "User#234", false, ""},
-		{"Valid Testcase 2", "User#123", "Workspace1", "User#345", false, ""},
-		{"Valid Testcase 3", "User#234", "Workspace2", "User#123", false, ""},
-		{"Workspace Doesn't Exists 1", "User#123", "Workspace2", "User#345", true, "foreign key constraint failed"},
-		{"Workspace Doesn't Exists 2", "User#234", "Workspace3", "User#345", true, "foreign key constraint failed"},
-		{"Duplicate Workspace Connection 1", "User#123", "Workspace1", "User#345", true, "unique constraint"},
-		{"Duplicate Workspace Connection 2", "User#234", "Workspace2", "User#123", true, "unique constraint"},
+		{"Valid Testcase 1", "User123", "Workspace1", "User234", false, ""},
+		{"Valid Testcase 2", "User123", "Workspace1", "User345", false, ""},
+		{"Valid Testcase 3", "User234", "Workspace2", "User123", false, ""},
+		{"Workspace Doesn't Exists 1", "User123", "Workspace2", "User345", true, "foreign key constraint failed"},
+		{"Workspace Doesn't Exists 2", "User234", "Workspace3", "User345", true, "foreign key constraint failed"},
+		{"Duplicate Workspace Connection 1", "User123", "Workspace1", "User345", true, "unique constraint"},
+		{"Duplicate Workspace Connection 2", "User234", "Workspace2", "User123", true, "unique constraint"},
 	}
 
 	for _, tc := range testcases {
 		t.Run(tc.test_name, func(t *testing.T) {
-			// No need to log errors from funcs during tests when I expect errors
+			// No need to log errors from funcs during tests when we expect errors
 			if tc.want_err {
 				log.SetOutput(io.Discard)
 				defer log.SetOutput(os.Stderr)
@@ -413,12 +402,12 @@ func TestCheckIfWorkspaceConnectionAlreadyExists(t *testing.T) {
 		workspace_listener_name                  string
 		does_workspace_connection_already_exists bool
 	}{
-		{"Valid Testcase 1", "Workspace1", "User#123", "User#234", true},
-		{"Valid Testcase 2", "Workspace1", "User#123", "User#345", true},
-		{"Valid Testcase 3", "Workspace2", "User#234", "User#345", true},
-		{"Workspace Doesn't Exists 1", "Workspace2", "User#123", "User#345", false},
-		{"Workspace Doesn't Exists 2", "Workspace1", "User#234", "User#345", false},
-		{"Workspace Doesn't Exists 3", "Workspace3", "User#345", "User#123", false},
+		{"Valid Testcase 1", "Workspace1", "User123", "User234", true},
+		{"Valid Testcase 2", "Workspace1", "User123", "User345", true},
+		{"Valid Testcase 3", "Workspace2", "User234", "User345", true},
+		{"Workspace Doesn't Exists 1", "Workspace2", "User123", "User345", false},
+		{"Workspace Doesn't Exists 2", "Workspace1", "User234", "User345", false},
+		{"Workspace Doesn't Exists 3", "Workspace3", "User345", "User123", false},
 	}
 
 	for _, tc := range testcases {

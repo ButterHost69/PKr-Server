@@ -30,6 +30,7 @@ UK:
 t:
 	@cls || clear
 	go test ./db
+	go test ./handler
 
 open-db:
 	@sqlite3 server_database.db

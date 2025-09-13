@@ -114,14 +114,14 @@ func InsertDummyData() error {
 	return nil
 }
 
-func InitSQLiteDatabase(TESTMODE bool, database_path string) (*sql.DB, error) {
+func InitSQLiteDatabase(database_path string) error {
 	var err error
 	db, err = sql.Open("sqlite3", database_path+"?_foreign_keys=on")
 	if err != nil {
 		log.Println("Error:", err)
 		log.Printf("Description: Could Not Open '%s' Sqlite3 DataBase File\n", database_path)
 		log.Println("Source: InitSQLiteDatabase()")
-		return nil, err
+		return err
 	}
 
 	err = createAllTables()
@@ -129,14 +129,9 @@ func InitSQLiteDatabase(TESTMODE bool, database_path string) (*sql.DB, error) {
 		log.Println("Error:", err)
 		log.Println("Description: Could Not Create All Tables")
 		log.Println("Source: InitSQLiteDatabase()")
-
-		return nil, err
+		return err
 	}
-
-	if TESTMODE {
-		return db, nil
-	}
-	return nil, nil
+	return nil
 }
 
 func AuthUser(username, password string) (bool, error) {
