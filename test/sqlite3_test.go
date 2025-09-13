@@ -60,8 +60,8 @@ func TestInitSQLiteDatabase(t *testing.T) {
 	}
 }
 
-func TestCreateNewUser(t *testing.T) {
-	err := db.CreateNewUser(TEST_USERNAME, TEST_PASSWORD)
+func TestRegisterNewUser(t *testing.T) {
+	err := db.RegisterNewUser(TEST_USERNAME, TEST_PASSWORD)
 	if err != nil {
 		t.Log("Error while Creating New User")
 		t.Error(err)
@@ -86,7 +86,7 @@ func TestCreateNewUser(t *testing.T) {
 
 // func TestRegisterNewWorkspace(t *testing.T) {
 // 	if UNIT_FUNC_TESTING {
-// 		TestCreateNewUser(t)
+// 		TestRegisterNewUser(t)
 // 	}
 
 // 	isNewWorkSpaceRegistered, err := db.RegisterNewWorkspace(TEST_USERNAME, TEST_PASSWORD, TEST_WORKSPACE_NAME)
@@ -138,7 +138,7 @@ func TestCreateNewUser(t *testing.T) {
 
 func TestAuthUser(t *testing.T) {
 	if UNIT_FUNC_TESTING {
-		TestCreateNewUser(t)
+		TestRegisterNewUser(t)
 	}
 
 	// dummy_transaction, err := test_db.Begin()

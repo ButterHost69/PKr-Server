@@ -27,6 +27,10 @@ func (s *CliServiceServer) Register(ctx context.Context, req *pb.RegisterRequest
 		return nil, fmt.Errorf("internal server error")
 	}
 
+	if is_username_already_used {
+		return nil, fmt.Errorf("username is already taken")
+	}
+
 	match, err := regexp.MatchString(`^[a-zA-Z0-9]+$`, req.Username)
 	if err != nil {
 		log.Println("Error:", err)
@@ -34,18 +38,15 @@ func (s *CliServiceServer) Register(ctx context.Context, req *pb.RegisterRequest
 		log.Println("Source: Register()")
 		return nil, fmt.Errorf("internal server error")
 	}
+
 	if !match {
 		return nil, fmt.Errorf("username must be alphanumeric")
 	}
 
-	if is_username_already_used {
-		return nil, fmt.Errorf("username is already taken")
-	}
-
-	err = db.CreateNewUser(req.Username, req.Password)
+	err = db.RegisterNewUser(req.Username, req.Password)
 	if err != nil {
 		log.Println("Error:", err)
-		log.Println("Description: Could Not Create New User")
+		log.Println("Description: Could Not Register New User")
 		log.Println("Source: Register()")
 		return nil, fmt.Errorf("internal server error")
 	}
@@ -66,7 +67,7 @@ func (s *CliServiceServer) RegisterWorkspace(ctx context.Context, req *pb.Regist
 		return nil, fmt.Errorf("incorrect user credentials")
 	}
 
-	err = db.RegisterNewWorkspace(req.Username, req.Password, req.WorkspaceName, int(req.LastPushNum))
+	err = db.RegisterNewWorkspace(req.Username, req.Password, req.WorkspaceName)
 	if err == nil {
 		return &pb.RegisterWorkspaceResponse{}, nil
 	}
@@ -105,6 +106,19 @@ func (s *CliServiceServer) RequestPunchFromReceiver(ctx context.Context, req *pb
 	if !does_workspace_owner_exists {
 		log.Println("Error: Invalid Workspace Owner Username\nSource: RequestPunchFromReceiver()")
 		return nil, fmt.Errorf("invalid workspace owner username")
+	}
+
+	does_workspace_exists, err := db.CheckIfWorkspaceExists(req.WorkspaceOwnerUsername, req.WorkspaceName)
+	if err != nil {
+		log.Println("Error:", err)
+		log.Println("Description: Could Not Check if Workspace Exists")
+		log.Println("Source: RequestPunchFromReceiver()")
+		return nil, fmt.Errorf("internal server error")
+	}
+
+	if !does_workspace_exists {
+		log.Println("Error: Invalid Workspace Name\nSource: RequestPunchFromReceiver()")
+		return nil, fmt.Errorf("workspace doesn't exists")
 	}
 
 	base_request := models.NotifyToPunchRequest{

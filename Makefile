@@ -27,6 +27,10 @@ UK:
 	@echo Stopping PKr-Server
 	pkill PKr-Server
 
+t:
+	@cls || clear
+	go test ./db
+
 open-db:
 	@sqlite3 server_database.db
 

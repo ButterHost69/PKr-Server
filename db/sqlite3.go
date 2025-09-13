@@ -10,9 +10,7 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-var (
-	db *sql.DB
-)
+var db *sql.DB
 
 func createAllTables() error {
 	usersTableQuery := `CREATE TABLE IF NOT EXISTS users (
@@ -25,13 +23,18 @@ func createAllTables() error {
 		workspace_name TEXT,
 		last_push_num INTEGER,
 
-		PRIMARY KEY(username, workspace_name)
+		PRIMARY KEY (username, workspace_name),
+		FOREIGN KEY (username) REFERENCES users(username)
 	);`
 
-	workspaceConnectionsQuery := `CREATE TABLE IF NOT EXISTS workspaceconnection(
+	workspaceConnectionsQuery := `CREATE TABLE IF NOT EXISTS workspaceconnection (
 		workspace_name	TEXT,
 		owner_username TEXT,
-		listener_username TEXT
+		listener_username TEXT,
+
+		PRIMARY KEY (workspace_name, owner_username, listener_username),
+		FOREIGN KEY (workspace_name, owner_username) REFERENCES workspaces(workspace_name, username),
+		FOREIGN KEY (listener_username) REFERENCES users(username)
 	);`
 
 	_, err := db.Exec(usersTableQuery)
@@ -76,7 +79,7 @@ func InsertDummyData() error {
 		return err
 	}
 
-	query = `INSERT INTO workspaces (username, workspace_name, last_hash) VALUES
+	query = `INSERT INTO workspaces (username, workspace_name, last_push_num) VALUES
 				('user#123', 'WorkspaceA', 1),
 				('user#123', 'WorkspaceB', 2),
 				('user#456', 'WorkspaceC', 10),
@@ -113,7 +116,7 @@ func InsertDummyData() error {
 
 func InitSQLiteDatabase(TESTMODE bool, database_path string) (*sql.DB, error) {
 	var err error
-	db, err = sql.Open("sqlite3", database_path)
+	db, err = sql.Open("sqlite3", database_path+"?_foreign_keys=on")
 	if err != nil {
 		log.Println("Error:", err)
 		log.Printf("Description: Could Not Open '%s' Sqlite3 DataBase File\n", database_path)
@@ -156,13 +159,13 @@ func CheckIfUsernameIsAlreadyTaken(username string) (bool, error) {
 	return rows.Next(), nil
 }
 
-func CreateNewUser(username, password string) error {
-	query := "INSERT INTO users (username, password) VALUES (?, ?)"
+func RegisterNewUser(username, password string) error {
+	query := "INSERT INTO users (username, password) VALUES (?, ?);"
 	_, err := db.Exec(query, username, password)
 	if err != nil {
 		log.Println("Error:", err)
 		log.Println("Description: Could Not Register a New User")
-		log.Println("Source: CreateNewUser()")
+		log.Println("Source: RegisterNewUser()")
 		return err
 	}
 	return nil
@@ -182,8 +185,8 @@ func CheckIfWorkspaceExists(username, workspace_name string) (bool, error) {
 	return rows.Next(), nil
 }
 
-func RegisterNewWorkspace(username, password, workspace_name string, last_push_num int) error {
-	ifAuth, err := AuthUser(username, password)
+func RegisterNewWorkspace(username, password, workspace_name string) error {
+	is_user_authenticated, err := AuthUser(username, password)
 	if err != nil {
 		log.Println("Error:", err)
 		log.Println("Description: Could Not Authenticate User")
@@ -191,11 +194,11 @@ func RegisterNewWorkspace(username, password, workspace_name string, last_push_n
 		return err
 	}
 
-	if !ifAuth {
+	if !is_user_authenticated {
 		return fmt.Errorf("incorrect user credentials")
 	}
 
-	doesWorkspaceAlreadyExists, err := CheckIfWorkspaceExists(username, workspace_name)
+	does_workspace_already_exists, err := CheckIfWorkspaceExists(username, workspace_name)
 	if err != nil {
 		log.Println("Error:", err)
 		log.Println("Description: Could Not Check if Workspace Already Exists")
@@ -203,12 +206,12 @@ func RegisterNewWorkspace(username, password, workspace_name string, last_push_n
 		return err
 	}
 
-	if doesWorkspaceAlreadyExists {
+	if does_workspace_already_exists {
 		return fmt.Errorf("workspace already exists")
 	}
 
-	query := "INSERT INTO workspaces (username, workspace_name, last_push_num) VALUES (?,?,?);"
-	if _, err = db.Exec(query, username, workspace_name, last_push_num); err != nil {
+	query := "INSERT INTO workspaces (username, workspace_name, last_push_num) VALUES (?, ?, 0);"
+	if _, err = db.Exec(query, username, workspace_name); err != nil {
 		log.Println("Error:", err)
 		log.Println("Description: Could Not Insert into workspaces Table")
 		log.Println("Source: RegisterNewWorkspace()")
