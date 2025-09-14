@@ -340,16 +340,6 @@ func TestGetLastPushNumOfWorkspace(t *testing.T) {
 }
 
 // ---------- WS Tests ----------
-// TODO: Complete These Tests
-func TestRequestPunchFromReceiver(t *testing.T) {
-	setupTestDB(t)
-	seedUsers(t)
-	seedWorkspaces(t)
-}
-
-func TestNotifyNewPushToListeners(t *testing.T) {
-	setupTestDB(t)
-	seedUsers(t)
-	seedWorkspaces(t)
-	seedWorkspaceConnections(t)
-}
+// README: Unit Tests won't make sense for "RequestPunchFromReceiver" & "TestNotifyNewPushToListeners"
+// Since it'll be full of mocks
+// Will cover these during Integrated or System Test
