@@ -10,6 +10,10 @@ R:
 	@del server_database.db
 	go run .
 
+# Delete Test Database 
+D:
+	@del test_database.db >nul 2>&1
+	@del PKr-Server.log >nul 2>&1 
 
 # refresh
 ur:
@@ -27,7 +31,7 @@ UK:
 	@echo Stopping PKr-Server
 	pkill PKr-Server
 
-t:
+test:
 	@cls || clear
 	go test ./db
 	go test ./handlers
