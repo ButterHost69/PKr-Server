@@ -12,8 +12,8 @@ R:
 
 # Delete Test Database 
 D:
-	@del test_database.db >nul 2>&1
-	@del PKr-Server.log >nul 2>&1 
+	@del test_database.db
+	@del PKr-Server.log
 
 # refresh
 ur:
