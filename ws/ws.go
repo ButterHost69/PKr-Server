@@ -2,7 +2,6 @@ package ws
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"sync"
@@ -119,9 +118,6 @@ func handleRequestPunchFromReceiverRequest(msg models.WSMessage, conn *websocket
 		return
 	}
 
-	fmt.Println("HELLO", msg_obj.WorkspaceOwnerUsername+msg_obj.ListenerUsername)
-	fmt.Println(noti_to_punch_req)
-
 	// TODO: Add Proper Timeout
 	var noti_to_punch_res models.NotifyToPunchResponse
 	var invalid_flag bool
@@ -130,7 +126,6 @@ func handleRequestPunchFromReceiverRequest(msg models.WSMessage, conn *websocket
 		time.Sleep(10 * time.Second)
 		NotifyToPunchResponseMapObj.Lock()
 		noti_to_punch_res, ok = NotifyToPunchResponseMapObj.Map[msg_obj.WorkspaceOwnerUsername+msg_obj.ListenerUsername]
-		fmt.Println(NotifyToPunchResponseMapObj.Map)
 		NotifyToPunchResponseMapObj.Unlock()
 		if ok {
 			NotifyToPunchResponseMapObj.Lock()
@@ -155,7 +150,6 @@ func handleRequestPunchFromReceiverRequest(msg models.WSMessage, conn *websocket
 		req_punch_from_receiver_response.WorkspaceOwnerPrivateIp = noti_to_punch_res.WorkspaceOwnerPrivateIp
 		req_punch_from_receiver_response.WorkspaceOwnerPrivatePort = noti_to_punch_res.WorkspaceOwnerPrivatePort
 	}
-	fmt.Println(req_punch_from_receiver_response)
 
 	err = conn.WriteJSON(models.WSMessage{
 		MessageType: "RequestPunchFromReceiverResponse",
@@ -239,7 +233,6 @@ func ServerWS(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 	username := query.Get("username")
 	password := query.Get("password")
-	fmt.Println()
 	log.Printf("New Incoming Connection from %s with username=%s & password=%s\n", conn.RemoteAddr().String(), username, password)
 
 	is_user_authenticated, err := db.AuthUser(username, password)
