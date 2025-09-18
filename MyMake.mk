@@ -1,7 +1,7 @@
 ROOT_DIR=E:\Projects\Picker-Pal
-SERVER_OUTPUT=$(ROOT_DIR)\PKr-Server\PKr-Server.exe
 
-TEST_DEST=$(ROOT_DIR)\PKr-Test
+TEST_DEST=$(ROOT_DIR)\PKr-Test\Server
+SERVER_OUTPUT=$(ROOT_DIR)\PKr-Server\PKr-Server.exe
 
 build2test:clean build copy
 
@@ -18,5 +18,4 @@ copy:
 clean:
 	@cls
 	@echo Cleaning Up ...
-
 	@del "$(TEST_DEST)\PKr-Server.exe" || exit 0
