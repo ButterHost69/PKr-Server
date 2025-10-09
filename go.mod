@@ -1,11 +1,11 @@
-module github.com/ButterHost69/PKr-Server
+module github.com/PKr-Parivar/PKr-Server
 
 go 1.24.0
 
 require github.com/gorilla/websocket v1.5.3
 
 require (
-	github.com/ButterHost69/PKr-Base v0.0.0-20250913084440-94fdfa503b1b
+	github.com/PKr-Parivar/PKr-Base v0.0.0-20250913084440-94fdfa503b1b
 	github.com/mattn/go-sqlite3 v1.14.28
 	github.com/stretchr/testify v1.11.1
 	google.golang.org/grpc v1.74.2

@@ -45,4 +45,4 @@ grpc-out:
 upgrade-base:
 	@echo Copy Paste this in Terminal -- Don't Run using Make
 	$$env:GOPRIVATE="github.com/ButterHost69"
-	go get github.com/ButterHost69/PKr-Base@latest
+	go get github.com/PKr-Parivar/PKr-Base@latest

@@ -8,8 +8,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ButterHost69/PKr-Base/pb"
-	"github.com/ButterHost69/PKr-Server/db"
+	"github.com/PKr-Parivar/PKr-Base/pb"
+	"github.com/PKr-Parivar/PKr-Server/db"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

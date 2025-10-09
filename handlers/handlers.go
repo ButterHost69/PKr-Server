@@ -7,11 +7,11 @@ import (
 	"regexp"
 	"time"
 
-	pb "github.com/ButterHost69/PKr-Base/pb"
+	pb "github.com/PKr-Parivar/PKr-Base/pb"
 
-	"github.com/ButterHost69/PKr-Base/models"
-	"github.com/ButterHost69/PKr-Server/db"
-	"github.com/ButterHost69/PKr-Server/ws"
+	"github.com/PKr-Parivar/PKr-Base/models"
+	"github.com/PKr-Parivar/PKr-Server/db"
+	"github.com/PKr-Parivar/PKr-Server/ws"
 )
 
 type CliServiceServer struct {

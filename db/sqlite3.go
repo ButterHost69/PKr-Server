@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/ButterHost69/PKr-Base/pb"
+	"github.com/PKr-Parivar/PKr-Base/pb"
 
 	_ "github.com/mattn/go-sqlite3"
 )

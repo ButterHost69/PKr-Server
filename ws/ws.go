@@ -7,9 +7,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ButterHost69/PKr-Base/models"
-	"github.com/ButterHost69/PKr-Base/ws"
-	"github.com/ButterHost69/PKr-Server/db"
+	"github.com/PKr-Parivar/PKr-Base/models"
+	"github.com/PKr-Parivar/PKr-Base/ws"
+	"github.com/PKr-Parivar/PKr-Server/db"
 
 	"github.com/gorilla/websocket"
 )

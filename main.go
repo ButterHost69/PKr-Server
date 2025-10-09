@@ -6,11 +6,11 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/ButterHost69/PKr-Base/pb"
-	"github.com/ButterHost69/PKr-Server/db"
-	"github.com/ButterHost69/PKr-Server/handlers"
-	"github.com/ButterHost69/PKr-Server/utils"
-	"github.com/ButterHost69/PKr-Server/ws"
+	"github.com/PKr-Parivar/PKr-Base/pb"
+	"github.com/PKr-Parivar/PKr-Server/db"
+	"github.com/PKr-Parivar/PKr-Server/handlers"
+	"github.com/PKr-Parivar/PKr-Server/utils"
+	"github.com/PKr-Parivar/PKr-Server/ws"
 
 	"google.golang.org/grpc"
 )
