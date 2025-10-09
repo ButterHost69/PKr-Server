@@ -5,7 +5,7 @@ go 1.24.0
 require github.com/gorilla/websocket v1.5.3
 
 require (
-	github.com/PKr-Parivar/PKr-Base v0.0.0-20250913084440-94fdfa503b1b
+	github.com/PKr-Parivar/PKr-Base v0.0.0-20251009073237-fd0bc822a0dd
 	github.com/mattn/go-sqlite3 v1.14.28
 	github.com/stretchr/testify v1.11.1
 	google.golang.org/grpc v1.74.2
@@ -13,7 +13,7 @@ require (
 
 require (
 	git.sr.ht/~jackmordaunt/go-toast v1.1.2 // indirect
-	github.com/ButterHost69/kcp-go v1.0.10 // indirect
+	github.com/PKr-Parivar/kcp-go v1.0.14 // indirect
 	github.com/ccding/go-stun v0.1.5 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/esiqveland/notify v0.13.3 // indirect
